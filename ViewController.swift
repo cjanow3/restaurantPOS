@@ -44,9 +44,13 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     }
     //end picker view
     
-    //MARK: Table View initialization
     
-    let list = restaurantController.fetchOrders()
+    
+    //MARK: Table View initialization and refresh control
+    
+    @IBOutlet weak var tableView: UITableView!
+    var list = restaurantController.fetchOrders()
+    var refresher: UIRefreshControl!
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return list.count
@@ -69,6 +73,16 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         
         return cell
     }
+    
+    func populate()
+    {
+        list = restaurantController.fetchOrders()
+        
+        refresher.endRefreshing()
+        tableView.reloadData()
+    }
+    
+    
     
     
     //MARK: Segmented Control - pickup/delivery & cash/credit options
@@ -207,6 +221,11 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        
+        refresher = UIRefreshControl()
+        refresher.attributedTitle = NSAttributedString(string: "Updating...")
+        refresher.addTarget(self, action: #selector(ViewController.populate), for: .valueChanged)
+        tableView.addSubview(refresher)
     }
 
     override func didReceiveMemoryWarning() {
