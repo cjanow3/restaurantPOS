@@ -81,7 +81,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         refresher.endRefreshing()
         tableView.reloadData()
     }
-    
+    //end table view functions and init
     
     
     
@@ -124,6 +124,9 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     }
     //end segmented control
     
+    
+    
+    
     //MARK: UIAlert functions
     func createSimpleAlert(title: String, message: String)
     {
@@ -165,7 +168,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         self.present(alert, animated: true, completion: nil)
         
     }
-
+    //end alert functions
 
     
     //MARK: Add order to core data -- button
@@ -206,10 +209,15 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             let anOrder = restaurantController.OrderItem(NAME: orderName, ADDRESS: orderAddress, VENDOR: orderVendor, PRICE: orderPrice, TIP: orderTip, DELIVFEE: orderDelivFee, PICKUP: isPickup, CASH: isCash)
             
-            print(orderName)
             
-            restaurantController.storeOrder_OBJECT(newOrder: anOrder)
-                     
+            if (isPickup)
+            {
+                createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Pickup\n", theOrder: anOrder)
+            }else
+            {
+                createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Delivery\n", theOrder: anOrder)
+            }
+            
             
         }
     } //end addOrder
