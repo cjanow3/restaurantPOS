@@ -12,7 +12,7 @@ import CoreData
 var isPickup = true
 var isCash = true
 
-class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource {
+class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource {
     
     //MARK: Text fields for customer input
     
@@ -44,6 +44,31 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     }
     //end picker view
     
+    //MARK: Table View initialization
+    
+    let list = restaurantController.fetchOrders()
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return list.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ViewControllerTableViewCell
+        
+        cell.orderName.text = list[indexPath.row].name
+        cell.orderVendor.text = list[indexPath.row].vendor
+        cell.orderPrice.text = list[indexPath.row].price?.description
+        if (list[indexPath.row].pickup)
+        {
+            cell.orderPickupDelivery.text = "Pickup"
+
+        }else{
+            cell.orderPickupDelivery.text = "Delivery"
+        }
+        
+        return cell
+    }
     
     
     //MARK: Segmented Control - pickup/delivery & cash/credit options
