@@ -158,13 +158,33 @@ class restaurantController
             
         catch
         {
-            print(error.localizedDescription);
+            print(error.localizedDescription)
         }
         
-        return array;
+        return array
     }
-
     
+
+    class func clean_ALL_CoreData()
+    {
+        
+        let fetchRequest:NSFetchRequest<Order> = Order.fetchRequest();
+        
+        
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest:
+            fetchRequest as! NSFetchRequest<NSFetchRequestResult>);
+        
+        do
+        {
+            print("Deleting all contents");
+            try getContext().execute(deleteRequest);
+            
+        }
+        catch
+        {
+            print(error.localizedDescription);
+        }
+    } //end clean_ALL_CoreData()
     
     
 }

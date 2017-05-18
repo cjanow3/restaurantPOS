@@ -70,6 +70,10 @@ class EOD_ViewController: UIViewController {
     @IBOutlet weak var sliceCreditLabel: UILabel!
     @IBOutlet weak var sliceTotalLabel: UILabel!
     @IBOutlet weak var sliceNumLabel: UILabel!
+    
+    
+    
+
 
     
     
@@ -84,14 +88,256 @@ class EOD_ViewController: UIViewController {
 
     func separateTotals()
     {
+        //Variables used to display totals
         
-    }
+        //Pickup -- only needs credit total and # pickups
+        var amazonTotal = 0.0
+        var amazonNum = 0
+        
+        var caviarTotal = 0.0
+        var caviarNum = 0
+        
+        var doordashTotal = 0.0
+        var doordashNum = 0
+        
+        var eat24PickupTotal = 0.0
+        var eat24PickupNum = 0
+        
+        var grubhubPickupTotal = 0.0
+        var grubhubPickupNum = 0
+        
+        var postmatesTotal = 0.0
+        var postmatesNum = 0
+        
+        var uberTotal = 0.0
+        var uberNum = 0
+        
+        
+        
+        //Delivery
+        var dcomCash = 0.0
+        var dcomCredit = 0.0
+        var dcomTotal = 0.0
+        var dcomNum = 0
+        
+        var eat24DeliveryCash = 0.0
+        var eat24DeliveryCredit = 0.0
+        var eat24DeliveryTotal = 0.0
+        var eat24DeliveryNum = 0
+        
+        var foodlerCash = 0.0
+        var foodlerCredit = 0.0
+        var foodlerTotal = 0.0
+        var foodlerNum = 0
+        
+        //credit only
+        var grouponCredit = 0.0
+        var grouponTotal = 0.0
+        var grouponNum = 0
+        
+        var grubhubCash = 0.0
+        var grubhubCredit = 0.0
+        var grubhubTotal = 0.0
+        var grubhubNum = 0
+        
+        var seamlessCredit = 0.0
+        var seamlessTotal = 0.0
+        var seamlessNum = 0
+        
+        var sliceCredit = 0.0
+        var sliceTotal = 0.0
+        var sliceNum = 0
+        
+        
+        let orderList = restaurantController.fetchOrders()
+        
+        
+        for order in orderList
+        {
+            
+            //Case 1: Order is a pickup
+            if (order.pickup)
+            {
+                if (order.vendor == "Amazon")
+                {
+                    amazonTotal += order.price!
+                    amazonNum += 1
+                }
+                else if (order.vendor == "Caviar")
+                {
+                    caviarTotal += order.price!
+                    caviarNum += 1
+                }
+                else if (order.vendor == "Doordash")
+                {
+                    doordashTotal += order.price!
+                    doordashNum += 1
+                }
+                else if (order.vendor == "Eat24")
+                {
+                    eat24PickupTotal += order.price!
+                    eat24PickupNum += 1
+                }
+                else if (order.vendor == "Grubhub")
+                {
+                    grubhubPickupTotal += order.price!
+                    grubhubPickupNum += 1
+                }
+                else if (order.vendor == "Postmates")
+                {
+                    postmatesTotal += order.price!
+                    postmatesNum += 1
+                }
+                else if (order.vendor == "Uber")
+                {
+                    uberTotal += order.price!
+                    uberNum += 1
+                }
+            } //end order = pickup
+                
+            //Case 2: Order is a delivery
+            else if (order.pickup == false)
+            {
+                if (order.vendor == "Delivery.com")
+                {
+                    if (order.cash)
+                    {
+                        dcomCash += order.price!
+                        
+                    }else{
+                        dcomCredit += order.price!
+                    }
+                    
+                    dcomTotal += order.price!
+                    dcomNum += 1
+                }
+                else if (order.vendor == "Eat24")
+                {
+                    if (order.cash)
+                    {
+                        eat24DeliveryCash += order.price!
+                    }else{
+                        eat24DeliveryCredit += order.price!
+                    }
+                    
+                    eat24DeliveryTotal += order.price!
+                    eat24DeliveryNum += 1
+                }
+                else if (order.vendor == "Foodler")
+                {
+                    if (order.cash)
+                    {
+                        foodlerCash += order.price!
+                    }else{
+                        foodlerCredit += order.price!
+                    }
+                    
+                    foodlerTotal += order.price!
+                    foodlerNum += 1
+                }
+                else if (order.vendor == "Groupon")
+                {
+                    grouponCredit += order.price!
+                    grouponTotal += order.price!
+                    grouponNum += 1
+                }
+                else if (order.vendor == "Grubhub")
+                {
+                    if (order.cash)
+                    {
+                        grubhubCash += order.price!
+                    }else{
+                        grubhubCredit += order.price!
+                    }
+                    
+                    grubhubTotal += order.price!
+                    grubhubNum += 1
+                }
+                else if (order.vendor == "Seamless")
+                {
+                    seamlessCredit += order.price!
+                    seamlessTotal += order.price!
+                    seamlessNum += 1
+                }
+                else if (order.vendor == "SLICE")
+                {
+                    sliceCredit += order.price!
+                    sliceTotal += order.price!
+                    sliceNum += 1
+                }
+                
+            }//end order = delivery
+            
+        } //end for each loop
+        
+        //Pickup
+        amazonCreditLabel.text = amazonTotal.description
+        amazonNumLabel.text = amazonNum.description
+        
+        caviarCreditLabel.text = caviarTotal.description
+        caviarNumLabel.text = caviarNum.description
+        
+        doordashCreditLabel.text = doordashTotal.description
+        doordashNumLabel.text = doordashNum.description
+        
+        eat24CreditLabel.text = eat24PickupTotal.description
+        eat24NumLabel.text = eat24PickupNum.description
+        
+        grubhubCreditLabel.text = grubhubPickupTotal.description
+        grubhubNumLabel.text = grubhubPickupNum.description
+        
+        postmatesCreditLabel.text = postmatesTotal.description
+        postmatesNumLabel.text = postmatesNum.description
+        
+        uberCreditLabel.text = uberTotal.description
+        uberNumLabel.text = uberNum.description
+        
+        //Delivery
+        dcomCashLabel.text = dcomCash.description
+        dcomCreditLabel.text = dcomCredit.description
+        dcomTotalLabel.text = dcomTotal.description
+        dcomNumLabel.text = dcomNum.description
+        
+        eat24CashDeliveryLabel.text = eat24DeliveryCash.description
+        eat24CreditDeliveryLabel.text = eat24DeliveryCredit.description
+        eat24TotalDeliveryLabel.text = eat24DeliveryTotal.description
+        eat24NumDeliveryLabel.text = eat24DeliveryNum.description
+        
+        foodlerCashLabel.text = foodlerCash.description
+        foodlerCreditLabel.text = foodlerCredit.description
+        foodlerTotalLabel.text = foodlerTotal.description
+        foodlerNumLabel.text = foodlerNum.description
+        
+        grouponCreditLabel.text = grouponCredit.description
+        grouponTotalLabel.text = grouponTotal.description
+        grouponNumLabel.text = grouponNum.description
+        
+        grubhubCashDeliveryLabel.text = grubhubCash.description
+        grubhubCreditDeliveryLabel.text = grubhubCredit.description
+        grubhubTotalDeliveryLabel.text = grubhubTotal.description
+        grubhubNumDeliveryLabel.text = grubhubNum.description
+        
+        seamlessCreditLabel.text = seamlessCredit.description
+        seamlessTotalLabel.text = seamlessTotal.description
+        seamlessNumLabel.text = seamlessNum.description
+        
+        sliceCreditLabel.text = sliceCredit.description
+        sliceTotalLabel.text = sliceTotal.description
+        sliceNumLabel.text = sliceNum.description
+        
+        
+        
+    } //end separateTotals()
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        separateTotals()
     }
 
     override func didReceiveMemoryWarning() {

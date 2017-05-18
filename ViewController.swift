@@ -24,7 +24,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     @IBOutlet weak var tf_DeliveryFee: UITextField!
     
     //MARK: Picker View for vendor -- includes list and functions needed for picker view
-    let vendors = ["Amazon" , "Caviar", "Delivery.com", "Doordash", "Eat24" , "Foodler", "Groupon", "Grubhub" , "In Store", "Postmates", "Seamless", "Slice", "Uber"]
+    let vendors = ["Amazon" , "Caviar", "Delivery.com", "Doordash", "Eat24" , "Foodler", "Groupon", "Grubhub" , "In Store", "Postmates", "Seamless", "SLICE", "Uber"]
     @IBOutlet weak var vendor_Picker: UIPickerView!
     
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
@@ -245,7 +245,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     
     @IBAction func unwindEODView(segue: UIStoryboardSegue)
     {
-        print("unwindEODView fired in first view")
+        //print("unwindEODView fired in first view")
         
         if segue.source is EOD_ViewController
         {
@@ -263,6 +263,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         refresher.attributedTitle = NSAttributedString(string: "Updating...")
         refresher.addTarget(self, action: #selector(ViewController.populate), for: .valueChanged)
         tableView.addSubview(refresher)
+        
+        
     }
 
     override func didReceiveMemoryWarning() {
