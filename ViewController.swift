@@ -240,8 +240,19 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     
     @IBAction func endofday(_ sender: Any)
     {
-        performSegue(withIdentifier: "endofdayseg", sender: self)
+        //performSegue(withIdentifier: "endofdayseg", sender: self)
     }
+    
+    @IBAction func unwindEODView(segue: UIStoryboardSegue)
+    {
+        print("unwindEODView fired in first view")
+        
+        if segue.source is EOD_ViewController
+        {
+            //do something here if we want to pass info from previous seg (EOD)
+        }
+    }
+
     
     
     override func viewDidLoad() {
