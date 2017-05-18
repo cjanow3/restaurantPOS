@@ -212,10 +212,22 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             if (isPickup)
             {
-                createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Pickup\n", theOrder: anOrder)
+                if (isCash)
+                {
+                    createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Cash Pickup\n", theOrder: anOrder)
+                }else{
+                    createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Credit Pickup\n", theOrder: anOrder)
+                }
+                
             }else
             {
-                createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Delivery\n", theOrder: anOrder)
+                if (isCash)
+                {
+                    createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Cash Delivery\n", theOrder: anOrder)
+                }else{
+                    createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Credit Delivery\n", theOrder: anOrder)
+                }
+                
             }
             
             
@@ -224,6 +236,12 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
 
     
     
+    //MARK: End of Day button
+    
+    @IBAction func endofday(_ sender: Any)
+    {
+        performSegue(withIdentifier: "endofdayseg", sender: self)
+    }
     
     
     override func viewDidLoad() {
