@@ -71,9 +71,18 @@ class EOD_ViewController: UIViewController {
     @IBOutlet weak var sliceTotalLabel: UILabel!
     @IBOutlet weak var sliceNumLabel: UILabel!
     
+    //Final totals (on bottom on main storyboard)
     
+    @IBOutlet weak var totalPickupCredit: UILabel!
+    @IBOutlet weak var totalPickupNum: UILabel!
     
+    @IBOutlet weak var totalDeliveryCredit: UILabel!
+    @IBOutlet weak var totalDeliveryCash: UILabel!
+    @IBOutlet weak var totalDelivery: UILabel!
+    @IBOutlet weak var totalDeliveryNum: UILabel!
 
+    @IBOutlet weak var totalTips: UILabel!
+    @IBOutlet weak var totalDeliveryFees: UILabel!
 
     
     
@@ -84,6 +93,13 @@ class EOD_ViewController: UIViewController {
         
         dismiss(animated: true, completion: nil)
         
+    }
+    
+    //MARK: Reset day
+    
+    @IBAction func resetDay(_ sender: Any)
+    {
+        createAlert_ContainsText(title: "Enter Password", message: "")
     }
 
     func separateTotals()
@@ -148,6 +164,19 @@ class EOD_ViewController: UIViewController {
         var sliceTotal = 0.0
         var sliceNum = 0
         
+        //Final totals
+        var pickupCredit = 0.0
+        var pickupNum = 0.0
+        
+        var deliveryCredit = 0.0
+        var deliveryCash = 0.0
+        var deliveryTotal = 0.0
+        var deliveryNum = 0
+        
+        var tips = 0.0
+        var deliveryfees = 0.0
+        
+        
         
         let orderList = restaurantController.fetchOrders()
         
@@ -158,6 +187,9 @@ class EOD_ViewController: UIViewController {
             //Case 1: Order is a pickup
             if (order.pickup)
             {
+                pickupCredit += order.price!
+                pickupNum += 1
+                
                 if (order.vendor == "Amazon")
                 {
                     amazonTotal += order.price!
@@ -198,6 +230,17 @@ class EOD_ViewController: UIViewController {
             //Case 2: Order is a delivery
             else if (order.pickup == false)
             {
+                deliveryNum += 1
+                deliveryTotal += order.price!
+                
+                if (order.cash)
+                {
+                    deliveryCash += order.price!
+                }else{
+                    deliveryCredit += order.price!
+                }
+        
+                
                 if (order.vendor == "Delivery.com")
                 {
                     if (order.cash)
@@ -268,6 +311,9 @@ class EOD_ViewController: UIViewController {
                 
             }//end order = delivery
             
+            tips += order.tip!
+            deliveryfees += order.delivFee!
+            
         } //end for each loop
         
         //Pickup
@@ -325,9 +371,77 @@ class EOD_ViewController: UIViewController {
         sliceTotalLabel.text = sliceTotal.description
         sliceNumLabel.text = sliceNum.description
         
+        totalPickupCredit.text = pickupCredit.description
+        totalPickupNum.text = pickupNum.description
+        
+        totalDeliveryCredit.text = deliveryCredit.description
+        totalDeliveryCash.text = deliveryCash.description
+        totalDelivery.text = deliveryTotal.description
+        totalDeliveryNum.text = deliveryNum.description
+        
+        totalTips.text = tips.description
+        totalDeliveryFees.text = deliveryfees.description
         
         
     } //end separateTotals()
+    
+    func createAlert(title: String, message: String)
+    {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { (action) in alert.dismiss(animated: true, completion: nil)
+        }))
+        
+        self.present(alert, animated: true, completion: nil)
+        
+    }
+    
+    func createAlert_ContainsText(title: String, message: String)
+    {
+        
+        //create alert controller
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        
+        //create cancel action
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        //craete ok action
+        let ok = UIAlertAction(title: "OK", style: .default, handler: { (action: UIAlertAction) -> Void in print("OK")
+            
+            let inputPassword = alert.textFields?[0].text
+            
+            if (inputPassword != "0000")
+            {
+                
+                self.createAlert(title: "Incorrect", message: "Try again")
+                
+            }
+                
+            else
+            {
+                restaurantController.clean_ALL_CoreData()
+                self.createAlert(title: "Confirmed", message: "The day has been reset.")
+                
+                
+            }
+            
+            
+            
+        })
+        
+        alert.addAction(cancel)
+        
+        alert.addAction(ok)
+        
+        alert.addTextField(configurationHandler: { (textField: UITextField) -> Void in textField.placeholder = "Password"})
+        
+        
+        
+        
+        
+        self.present(alert, animated: true, completion: nil)
+        
+    }
     
     
     override func viewDidLoad() {
