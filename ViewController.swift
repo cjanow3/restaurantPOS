@@ -74,6 +74,10 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         return cell
     }
     
+    /*func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+    }*/
+    
     func populate()
     {
         list = restaurantController.fetchOrders()
@@ -83,8 +87,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     }
     //end table view functions and init
     
-    
-    
+        
     //MARK: Segmented Control - pickup/delivery & cash/credit options
     
     @IBOutlet weak var pickupdeliverySeg: UISegmentedControl!
@@ -97,9 +100,14 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         {
         case 0:
             isPickup = true;
+            tf_CustomerAddr.isUserInteractionEnabled = false
+            tf_CustomerAddr.text = "Pickup"
             //print("pickup")
         case 1:
             isPickup = false;
+            tf_CustomerAddr.isUserInteractionEnabled = true
+            tf_CustomerAddr.text = ""
+
             //print("delivery")
         default:
             break;
@@ -236,7 +244,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
 
     
     
-    //MARK: End of Day button
+    //MARK: Segues
     
     @IBAction func endofday(_ sender: Any)
     {
@@ -252,6 +260,41 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             //do something here if we want to pass info from previous seg (EOD)
         }
     }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if (segue.identifier == "detailseg")
+        {
+            if let indexPath = tableView.indexPathForSelectedRow {
+                
+                let destVC = segue.destination as! Cell_ViewController
+                
+                destVC.cName = list[indexPath.row].name
+                destVC.cVendor = list[indexPath.row].vendor
+                destVC.cTip = list[indexPath.row].tip
+                destVC.cPrice = list[indexPath.row].price
+                destVC.cDeliveryFee = list[indexPath.row].delivFee
+                
+                //determine if pickup/delivery -- also update address accordingly
+                if (list[indexPath.row].pickup) {
+                    destVC.cPickupDelivery = "Pickup"
+                    destVC.cAddress = "None -- Pickup"
+                    
+                } else {
+                    destVC.cPickupDelivery = "Delivery"
+                    destVC.cAddress = list[indexPath.row].address
+                }
+                
+                //determine if cash/credit
+                if (list[indexPath.row].cash)
+                {
+                    destVC.cCashCredit = "Cash"
+                } else {
+                    destVC.cCashCredit = "Credit"
+                }
+                
+            } // end indexPath -- should not ever be null -- however gets information for selected cell
+        } //end detailseg option
+    } //end prepareforseg
 
     
     

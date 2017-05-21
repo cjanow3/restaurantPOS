@@ -166,7 +166,7 @@ class EOD_ViewController: UIViewController {
         
         //Final totals
         var pickupCredit = 0.0
-        var pickupNum = 0.0
+        var pickupNum = 0
         
         var deliveryCredit = 0.0
         var deliveryCash = 0.0

@@ -165,6 +165,7 @@ class restaurantController
     }
     
 
+    //MARK: Delete from core data functions
     class func clean_ALL_CoreData()
     {
         
@@ -186,5 +187,31 @@ class restaurantController
         }
     } //end clean_ALL_CoreData()
     
+    class func clean_SPECIFIC_CoreData()
+    {
+        
+        let fetchRequest:NSFetchRequest<Order> = Order.fetchRequest();
+        
+        let predicate = NSPredicate(format: "name contains[c] %@", "Janowski")
+        //predicate = NSPredicate(format: "address == %@", "1622 S. Allport")
+        //predicate = NSPredicate(format: "price > %@", "20.00")
+        
+        fetchRequest.predicate = predicate;
+        
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest:
+            fetchRequest as! NSFetchRequest<NSFetchRequestResult>);
+        
+        do
+        {
+            print("Deleting specific content(s)");
+            //Print are you sure message alert -- yes or no buttons
+            try getContext().execute(deleteRequest);
+            
+        }
+        catch
+        {
+            print(error.localizedDescription);
+        }
+    } //end cleanCoreData()
     
 }
