@@ -22,6 +22,7 @@ class Cell_ViewController: UIViewController {
     @IBOutlet weak var tip: UILabel!
     @IBOutlet weak var price: UILabel!
     @IBOutlet weak var deliveryfee: UILabel!
+    @IBOutlet weak var refund: UILabel!
     
     
     var cName:String?
@@ -33,7 +34,7 @@ class Cell_ViewController: UIViewController {
     var cTip:Double?
     var cDeliveryFee:Double?
     var cPrice:Double?
-    
+    var cRefund:Double?
     
     @IBAction func backtomainmenu(_ sender: Any)
     {
@@ -49,7 +50,7 @@ class Cell_ViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         
-        if let cName = cName, let cVendor = cVendor, let cAddress = cAddress, let cCashCredit = cCashCredit, let cPickupDelivery = cPickupDelivery, let cTip = cTip, let cDeliveryFee = cDeliveryFee, let cPrice = cPrice {
+        if let cName = cName, let cVendor = cVendor, let cAddress = cAddress, let cCashCredit = cCashCredit, let cPickupDelivery = cPickupDelivery, let cTip = cTip, let cDeliveryFee = cDeliveryFee, let cPrice = cPrice, let cRefund = cRefund {
             
             name.text = cName
             vendor.text = cVendor
@@ -60,6 +61,7 @@ class Cell_ViewController: UIViewController {
             tip.text = cTip.description
             price.text = cPrice.description
             deliveryfee.text = cDeliveryFee.description
+            refund.text = cRefund.description
             
         }
     }

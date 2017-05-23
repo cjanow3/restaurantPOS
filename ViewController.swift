@@ -14,6 +14,10 @@ var isCash = true
 
 class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource {
     
+    //MARK: Image view for Big G's Logo
+    
+    
+    
     //MARK: Text fields for customer input
     
     @IBOutlet weak var tf_CustomerName: UITextField!
@@ -74,9 +78,15 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         return cell
     }
     
-    /*func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-    }*/
+   
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        if (editingStyle == UITableViewCellEditingStyle.delete)
+        {
+            list.remove(at: indexPath.row)
+            
+            tableView.reloadData()
+        }
+    }
     
     func populate()
     {
@@ -101,14 +111,17 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         case 0:
             isPickup = true;
             tf_CustomerAddr.isUserInteractionEnabled = false
+            tf_DeliveryFee.isUserInteractionEnabled = false
             tf_CustomerAddr.text = "Pickup"
-            //print("pickup")
+            tf_DeliveryFee.text = "0"
+            
         case 1:
             isPickup = false;
             tf_CustomerAddr.isUserInteractionEnabled = true
+            tf_DeliveryFee.isUserInteractionEnabled = true
             tf_CustomerAddr.text = ""
-
-            //print("delivery")
+            tf_DeliveryFee.text = "0"
+            
         default:
             break;
         }
@@ -161,7 +174,16 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             
             self.tf_CustomerName.text = ""
-            self.tf_CustomerAddr.text = ""
+            
+            if (self.pickupdeliverySeg.selectedSegmentIndex == 0)
+            {
+                self.tf_CustomerAddr.text = "Pickup"
+                
+            } else{
+                self.tf_CustomerAddr.text = ""
+                
+            }
+            
             self.tf_Vendor.text = ""
             self.tf_Price.text = ""
             self.tf_Tip.text = "0"
@@ -220,6 +242,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             if (isPickup)
             {
+                //if (anOrder.getVendor())
                 if (isCash)
                 {
                     createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Cash Pickup\n", theOrder: anOrder)
@@ -273,6 +296,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 destVC.cTip = list[indexPath.row].tip
                 destVC.cPrice = list[indexPath.row].price
                 destVC.cDeliveryFee = list[indexPath.row].delivFee
+                destVC.cRefund = list[indexPath.row].refund
                 
                 //determine if pickup/delivery -- also update address accordingly
                 if (list[indexPath.row].pickup) {
@@ -306,6 +330,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         refresher.attributedTitle = NSAttributedString(string: "Updating...")
         refresher.addTarget(self, action: #selector(ViewController.populate), for: .valueChanged)
         tableView.addSubview(refresher)
+        
         
         
     }

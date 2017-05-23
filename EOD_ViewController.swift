@@ -15,24 +15,38 @@ class EOD_ViewController: UIViewController {
     //Pickup
     @IBOutlet weak var amazonCreditLabel: UILabel!
     @IBOutlet weak var amazonNumLabel: UILabel!
+    @IBOutlet weak var amazonCashLabel: UILabel!
+    @IBOutlet weak var amazonTotalLabel: UILabel!
     
     @IBOutlet weak var caviarCreditLabel: UILabel!
     @IBOutlet weak var caviarNumLabel: UILabel!
+    @IBOutlet weak var caviarCashLabel: UILabel!
+    @IBOutlet weak var caviarTotalLabel: UILabel!
     
     @IBOutlet weak var doordashCreditLabel: UILabel!
     @IBOutlet weak var doordashNumLabel: UILabel!
+    @IBOutlet weak var doordashCashLabel: UILabel!
+    @IBOutlet weak var doordashTotalLabel: UILabel!
     
     @IBOutlet weak var eat24CreditLabel: UILabel!
     @IBOutlet weak var eat24NumLabel: UILabel!
+    @IBOutlet weak var eat24CashLabel: UILabel!
+    @IBOutlet weak var eat24TotalLabel: UILabel!
     
     @IBOutlet weak var grubhubCreditLabel: UILabel!
     @IBOutlet weak var grubhubNumLabel: UILabel!
+    @IBOutlet weak var grubhubCashLabel: UILabel!
+    @IBOutlet weak var grubhubTotalLabel: UILabel!
     
     @IBOutlet weak var postmatesCreditLabel: UILabel!
     @IBOutlet weak var postmatesNumLabel: UILabel!
+    @IBOutlet weak var postmatesCashLabel: UILabel!
+    @IBOutlet weak var postmatesTotalLabel: UILabel!
     
     @IBOutlet weak var uberCreditLabel: UILabel!
     @IBOutlet weak var uberNumLabel: UILabel!
+    @IBOutlet weak var uberCashLabel: UILabel!
+    @IBOutlet weak var uberTotalLabel: UILabel!
     
     //Delivery
     @IBOutlet weak var dcomCashLabel: UILabel!
@@ -106,27 +120,42 @@ class EOD_ViewController: UIViewController {
     {
         //Variables used to display totals
         
-        //Pickup -- only needs credit total and # pickups
-        var amazonTotal = 0.0
+        //Pickup
+        var amazonCredit = 0.0
         var amazonNum = 0
+        var amazonCash = 0.0
+        var amazonTotal = 0.0
         
-        var caviarTotal = 0.0
+        
+        var caviarCredit = 0.0
         var caviarNum = 0
+        var caviarCash = 0.0
+        var caviarTotal = 0.0
         
-        var doordashTotal = 0.0
+        var doordashCredit = 0.0
         var doordashNum = 0
+        var doordashCash = 0.0
+        var doordashTotal = 0.0
         
-        var eat24PickupTotal = 0.0
+        var eat24PickupCredit = 0.0
         var eat24PickupNum = 0
+        var eat24PickupCash = 0.0
+        var eat24PickupTotal = 0.0
         
-        var grubhubPickupTotal = 0.0
+        var grubhubPickupCredit = 0.0
         var grubhubPickupNum = 0
+        var grubhubPickupCash = 0.0
+        var grubhubPickupTotal = 0.0
         
-        var postmatesTotal = 0.0
+        var postmatesCredit = 0.0
         var postmatesNum = 0
+        var postmatesCash = 0.0
+        var postmatesTotal = 0.0
         
-        var uberTotal = 0.0
+        var uberCredit = 0.0
         var uberNum = 0
+        var uberCash = 0.0
+        var uberTotal = 0.0
         
         
         
@@ -192,36 +221,85 @@ class EOD_ViewController: UIViewController {
                 
                 if (order.vendor == "Amazon")
                 {
+                    if (order.cash)
+                    {
+                        amazonCash += order.price!
+                    } else{
+                        amazonCredit += order.price!
+
+                    }
                     amazonTotal += order.price!
                     amazonNum += 1
                 }
                 else if (order.vendor == "Caviar")
                 {
+                    if (order.cash)
+                    {
+                        caviarCash += order.price!
+                    } else{
+                        caviarCredit += order.price!
+
+                    }
                     caviarTotal += order.price!
                     caviarNum += 1
                 }
                 else if (order.vendor == "Doordash")
                 {
+                    if (order.cash)
+                    {
+                        doordashCash += order.price!
+                    } else{
+                        doordashCredit += order.price!
+
+                    }
                     doordashTotal += order.price!
                     doordashNum += 1
                 }
                 else if (order.vendor == "Eat24")
                 {
+                    if (order.cash)
+                    {
+                        eat24PickupCash += order.price!
+                    } else{
+                        eat24PickupCredit += order.price!
+
+                    }
                     eat24PickupTotal += order.price!
                     eat24PickupNum += 1
                 }
                 else if (order.vendor == "Grubhub")
                 {
+                    if (order.cash)
+                    {
+                        grubhubPickupCash += order.price!
+                    } else{
+                        grubhubPickupCredit += order.price!
+
+                    }
                     grubhubPickupTotal += order.price!
                     grubhubPickupNum += 1
                 }
                 else if (order.vendor == "Postmates")
                 {
+                    if (order.cash)
+                    {
+                        postmatesCash += order.price!
+                    } else{
+                        postmatesCredit += order.price!
+
+                    }
                     postmatesTotal += order.price!
                     postmatesNum += 1
                 }
                 else if (order.vendor == "Uber")
                 {
+                    if (order.cash)
+                    {
+                        uberCash += order.price!
+                    } else{
+                        uberCredit += order.price!
+
+                    }
                     uberTotal += order.price!
                     uberNum += 1
                 }
@@ -317,26 +395,40 @@ class EOD_ViewController: UIViewController {
         } //end for each loop
         
         //Pickup
-        amazonCreditLabel.text = amazonTotal.description
+        amazonCreditLabel.text = amazonCredit.description
         amazonNumLabel.text = amazonNum.description
+        amazonCashLabel.text = amazonCash.description
+        amazonTotalLabel.text = amazonTotal.description
         
-        caviarCreditLabel.text = caviarTotal.description
+        caviarCreditLabel.text = caviarCredit.description
         caviarNumLabel.text = caviarNum.description
+        caviarCashLabel.text = caviarCash.description
+        caviarTotalLabel.text = caviarTotal.description
         
-        doordashCreditLabel.text = doordashTotal.description
+        doordashCreditLabel.text = doordashCredit.description
         doordashNumLabel.text = doordashNum.description
+        doordashCashLabel.text = doordashCash.description
+        doordashTotalLabel.text = doordashTotal.description
         
-        eat24CreditLabel.text = eat24PickupTotal.description
+        eat24CreditLabel.text = eat24PickupCredit.description
         eat24NumLabel.text = eat24PickupNum.description
+        eat24CashLabel.text = eat24PickupCash.description
+        eat24TotalLabel.text = eat24PickupTotal.description
         
-        grubhubCreditLabel.text = grubhubPickupTotal.description
+        grubhubCreditLabel.text = grubhubPickupCredit.description
         grubhubNumLabel.text = grubhubPickupNum.description
+        grubhubCashLabel.text = grubhubPickupCash.description
+        grubhubTotalLabel.text = grubhubPickupTotal.description
         
-        postmatesCreditLabel.text = postmatesTotal.description
+        postmatesCreditLabel.text = postmatesCredit.description
         postmatesNumLabel.text = postmatesNum.description
+        postmatesCashLabel.text = postmatesCash.description
+        postmatesTotalLabel.text = postmatesTotal.description
         
-        uberCreditLabel.text = uberTotal.description
+        uberCreditLabel.text = uberCredit.description
         uberNumLabel.text = uberNum.description
+        uberCashLabel.text = uberCash.description
+        uberTotalLabel.text = uberTotal.description
         
         //Delivery
         dcomCashLabel.text = dcomCash.description

@@ -9,6 +9,9 @@
 import Foundation
 import CoreData
 
+let pickupVendors =   ["Amazon", "Caviar", "Doordash", "Eat24", "Grubhub", "Postmates", "Uber"]
+let deliveryVendors = ["Delivery.com", "Eat24", "Foodler", "Groupon", "Grubhub", "Seamless", "SLICE"]
+
 class restaurantController
 {
     
@@ -77,6 +80,7 @@ class restaurantController
         var delivFee:Double?
         var pickup:Bool
         var cash:Bool
+        var refund:Double
         
         init()
         {
@@ -86,6 +90,7 @@ class restaurantController
             price = 0.0
             delivFee = 0.0
             tip = 0.0
+            refund = 0.0
             pickup = true
             cash = true
         }
@@ -100,6 +105,99 @@ class restaurantController
             tip = TIP;
             pickup = PICKUP;
             cash = CASH
+            refund = 0.0
+        }
+        
+        //setters
+        mutating func setName(NAME: String)
+        {
+            name = NAME
+        }
+        
+        mutating func setAddress(ADDRESS:String)
+        {
+            address = ADDRESS
+        }
+        
+        mutating func setVendor(VENDOR:String)
+        {
+            vendor = VENDOR
+        }
+        
+        mutating func setPrice(PRICE:Double)
+        {
+            price = PRICE
+        }
+        
+        mutating func setDeliveryFee(DFEE:Double)
+        {
+            delivFee = DFEE
+        }
+        
+        mutating func setTip(TIP:Double)
+        {
+            tip = TIP
+        }
+        
+        mutating func setPickup(PICKUP:Bool)
+        {
+            pickup = PICKUP
+        }
+        
+        mutating func setCash(CASH:Bool)
+        {
+            cash = CASH
+        }
+        
+        mutating func setRefund(REFUND:Double)
+        {
+            refund = REFUND
+        }
+        
+        //getters
+        func getName() -> String
+        {
+            return name!
+        }
+        
+        func getAddress() -> String
+        {
+            return address!
+        }
+        
+        func getVendor() -> String
+        {
+            return vendor!
+        }
+        
+        func getPrice() -> Double
+        {
+            return price!
+        }
+        
+        func getDeliveryFee() -> Double
+        {
+            return delivFee!
+        }
+        
+        func getTip() -> Double
+        {
+            return tip!
+        }
+        
+        func getPickup() -> Bool
+        {
+            return pickup
+        }
+        
+        func getCash() -> Bool
+        {
+            return cash
+        }
+        
+        func getRefund() -> Double
+        {
+            return refund
         }
     }
     

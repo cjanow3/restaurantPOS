@@ -25,6 +25,7 @@ extension Order {
     @NSManaged public var price: Double
     @NSManaged public var tip: Double
     @NSManaged public var vendor: String?
+    @NSManaged public var refund: Double
     
     
 
