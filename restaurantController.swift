@@ -291,6 +291,7 @@ class restaurantController
         let fetchRequest:NSFetchRequest<Order> = Order.fetchRequest();
         
         let predicate = NSPredicate(format: "name contains[c] %@", "Janowski")
+        
         //predicate = NSPredicate(format: "address == %@", "1622 S. Allport")
         //predicate = NSPredicate(format: "price > %@", "20.00")
         

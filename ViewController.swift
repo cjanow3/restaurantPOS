@@ -82,6 +82,30 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if (editingStyle == UITableViewCellEditingStyle.delete)
         {
+            
+            let fetchRequest:NSFetchRequest<Order> = Order.fetchRequest();
+            
+            let predicate = NSPredicate(format: "name contains[c] %@", list[indexPath.row].getName())
+            
+            fetchRequest.predicate = predicate;
+            
+            let deleteRequest = NSBatchDeleteRequest(fetchRequest:
+                fetchRequest as! NSFetchRequest<NSFetchRequestResult>);
+            
+            do
+            {
+                print("Deleting specific content(s)");
+                //Print are you sure message alert -- yes or no buttons
+                try restaurantController.getContext().execute(deleteRequest);
+                
+            }
+            catch
+            {
+                print(error.localizedDescription);
+            }
+
+
+            
             list.remove(at: indexPath.row)
             
             tableView.reloadData()

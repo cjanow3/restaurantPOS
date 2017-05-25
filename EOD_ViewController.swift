@@ -97,7 +97,10 @@ class EOD_ViewController: UIViewController {
 
     @IBOutlet weak var totalTips: UILabel!
     @IBOutlet weak var totalDeliveryFees: UILabel!
-
+    @IBOutlet weak var driverPayout: UILabel!
+    
+    @IBOutlet weak var deliveryRefunds: UILabel!
+    @IBOutlet weak var pickupRefunds: UILabel!
     
     
     //MARK: Return to main menu button
@@ -109,11 +112,18 @@ class EOD_ViewController: UIViewController {
         
     }
     
+    //MARK: Reset Driver Payout -- used in case drivers switch
+    
+    @IBAction func resetDriverPay(_ sender: Any)
+    {
+        createAlert(title: "Confirm", message: "Really reset drivery payout?")
+    }
+    
     //MARK: Reset day
     
     @IBAction func resetDay(_ sender: Any)
     {
-        createAlert_ContainsText(title: "Enter Password", message: "")
+        createAlert_ResetDay(title: "Enter Password", message: "")
     }
 
     func separateTotals()
@@ -204,193 +214,208 @@ class EOD_ViewController: UIViewController {
         
         var tips = 0.0
         var deliveryfees = 0.0
+        var driverPay = 0.0
         
-        
+        var delivRefunds = 0.0
+        var pickRefunds = 0.00
         
         let orderList = restaurantController.fetchOrders()
         
         
         for order in orderList
         {
+            //get refund for each order regardless of pickup/delivery
             
             //Case 1: Order is a pickup
-            if (order.pickup)
+            if (order.getPickup())
             {
-                pickupCredit += order.price!
+                pickRefunds += order.getRefund()
+                
+                pickupCredit += order.getPrice()
                 pickupNum += 1
                 
-                if (order.vendor == "Amazon")
+                if (order.getVendor() == "Amazon")
                 {
-                    if (order.cash)
+                    if (order.getCash())
                     {
-                        amazonCash += order.price!
+                        amazonCash += order.getPrice()
                     } else{
-                        amazonCredit += order.price!
+                        amazonCredit += order.getPrice()
 
                     }
-                    amazonTotal += order.price!
+                    amazonTotal += order.getPrice()
                     amazonNum += 1
                 }
-                else if (order.vendor == "Caviar")
+                else if (order.getVendor() == "Caviar")
                 {
-                    if (order.cash)
+                    if (order.getCash())
                     {
-                        caviarCash += order.price!
+                        caviarCash += order.getPrice()
                     } else{
-                        caviarCredit += order.price!
+                        caviarCredit += order.getPrice()
 
                     }
-                    caviarTotal += order.price!
+                    caviarTotal += order.getPrice()
                     caviarNum += 1
                 }
-                else if (order.vendor == "Doordash")
+                else if (order.getVendor() == "Doordash")
                 {
-                    if (order.cash)
+                    if (order.getCash())
                     {
-                        doordashCash += order.price!
+                        doordashCash += order.getPrice()
                     } else{
-                        doordashCredit += order.price!
-
+                        doordashCredit += order.getPrice()
+                        
                     }
-                    doordashTotal += order.price!
+                    doordashTotal += order.getPrice()
                     doordashNum += 1
                 }
-                else if (order.vendor == "Eat24")
+                else if (order.getVendor() == "Eat24")
                 {
-                    if (order.cash)
+                    if (order.getCash())
                     {
-                        eat24PickupCash += order.price!
+                        eat24PickupCash += order.getPrice()
                     } else{
-                        eat24PickupCredit += order.price!
-
+                        eat24PickupCredit += order.getPrice()
+                        
                     }
-                    eat24PickupTotal += order.price!
+                    eat24PickupTotal += order.getPrice()
                     eat24PickupNum += 1
                 }
-                else if (order.vendor == "Grubhub")
+                else if (order.getVendor() == "Grubhub")
                 {
-                    if (order.cash)
+                    if (order.getCash())
                     {
-                        grubhubPickupCash += order.price!
+                        grubhubPickupCash += order.getPrice()
                     } else{
-                        grubhubPickupCredit += order.price!
+                        grubhubPickupCredit += order.getPrice()
 
                     }
-                    grubhubPickupTotal += order.price!
+                    grubhubPickupTotal += order.getPrice()
                     grubhubPickupNum += 1
                 }
-                else if (order.vendor == "Postmates")
+                else if (order.getVendor() == "Postmates")
                 {
-                    if (order.cash)
+                    if (order.getCash())
                     {
-                        postmatesCash += order.price!
+                        postmatesCash += order.getPrice()
                     } else{
-                        postmatesCredit += order.price!
+                        postmatesCredit += order.getPrice()
 
                     }
-                    postmatesTotal += order.price!
+                    postmatesTotal += order.getPrice()
                     postmatesNum += 1
                 }
-                else if (order.vendor == "Uber")
+                else if (order.getVendor() == "Uber")
                 {
-                    if (order.cash)
+                    if (order.getCash())
                     {
-                        uberCash += order.price!
+                        uberCash += order.getPrice()
                     } else{
-                        uberCredit += order.price!
+                        uberCredit += order.getPrice()
 
                     }
-                    uberTotal += order.price!
+                    uberTotal += order.getPrice()
                     uberNum += 1
                 }
             } //end order = pickup
                 
             //Case 2: Order is a delivery
-            else if (order.pickup == false)
+            else if (order.getPickup() == false)
             {
-                deliveryNum += 1
-                deliveryTotal += order.price!
+                delivRefunds += order.getRefund()
                 
-                if (order.cash)
+                //driver gets paid each delivery fee and tip for deliveries
+                driverPay += order.getDeliveryFee()
+                driverPay += order.getTip()
+                
+                tips += order.getTip()
+                deliveryfees += order.getDeliveryFee()
+                
+                //increase # deliveries for each delivery order, add to total price
+                deliveryNum += 1
+                deliveryTotal += order.getPrice()
+                
+                if (order.getCash())
                 {
-                    deliveryCash += order.price!
+                    deliveryCash += order.getPrice()
                 }else{
-                    deliveryCredit += order.price!
+                    deliveryCredit += order.getPrice()
                 }
         
                 
-                if (order.vendor == "Delivery.com")
+                if (order.getVendor() == "Delivery.com")
                 {
-                    if (order.cash)
+                    if (order.getCash())
                     {
-                        dcomCash += order.price!
+                        dcomCash += order.getPrice()
                         
                     }else{
-                        dcomCredit += order.price!
+                        dcomCredit += order.getPrice()
                     }
                     
-                    dcomTotal += order.price!
+                    dcomTotal += order.getPrice()
                     dcomNum += 1
                 }
-                else if (order.vendor == "Eat24")
+                else if (order.getVendor() == "Eat24")
                 {
-                    if (order.cash)
+                    if (order.getCash())
                     {
-                        eat24DeliveryCash += order.price!
+                        eat24DeliveryCash += order.getPrice()
                     }else{
-                        eat24DeliveryCredit += order.price!
+                        eat24DeliveryCredit += order.getPrice()
                     }
                     
-                    eat24DeliveryTotal += order.price!
+                    eat24DeliveryTotal += order.getPrice()
                     eat24DeliveryNum += 1
                 }
-                else if (order.vendor == "Foodler")
+                else if (order.getVendor() == "Foodler")
                 {
-                    if (order.cash)
+                    if (order.getCash())
                     {
-                        foodlerCash += order.price!
+                        foodlerCash += order.getPrice()
                     }else{
-                        foodlerCredit += order.price!
+                        foodlerCredit += order.getPrice()
                     }
                     
-                    foodlerTotal += order.price!
+                    foodlerTotal += order.getPrice()
                     foodlerNum += 1
                 }
-                else if (order.vendor == "Groupon")
+                else if (order.getVendor() == "Groupon")
                 {
-                    grouponCredit += order.price!
-                    grouponTotal += order.price!
+                    grouponCredit += order.getPrice()
+                    grouponTotal += order.getPrice()
                     grouponNum += 1
                 }
-                else if (order.vendor == "Grubhub")
+                else if (order.getVendor() == "Grubhub")
                 {
-                    if (order.cash)
+                    if (order.getCash())
                     {
-                        grubhubCash += order.price!
+                        grubhubCash += order.getPrice()
                     }else{
-                        grubhubCredit += order.price!
+                        grubhubCredit += order.getPrice()
                     }
                     
-                    grubhubTotal += order.price!
+                    grubhubTotal += order.getPrice()
                     grubhubNum += 1
                 }
-                else if (order.vendor == "Seamless")
+                else if (order.getVendor() == "Seamless")
                 {
-                    seamlessCredit += order.price!
-                    seamlessTotal += order.price!
+                    seamlessCredit += order.getPrice()
+                    seamlessTotal += order.getPrice()
                     seamlessNum += 1
                 }
-                else if (order.vendor == "SLICE")
+                else if (order.getVendor() == "SLICE")
                 {
-                    sliceCredit += order.price!
-                    sliceTotal += order.price!
+                    sliceCredit += order.getPrice()
+                    sliceTotal += order.getPrice()
                     sliceNum += 1
                 }
                 
+                
             }//end order = delivery
             
-            tips += order.tip!
-            deliveryfees += order.delivFee!
+
             
         } //end for each loop
         
@@ -474,6 +499,12 @@ class EOD_ViewController: UIViewController {
         totalTips.text = tips.description
         totalDeliveryFees.text = deliveryfees.description
         
+        //Driver Payout is equal to total tips and delivery fees MINUS any cash deliveries
+        driverPay -= deliveryCash
+        driverPayout.text = driverPay.description
+        
+        deliveryRefunds.text = delivRefunds.description
+        pickupRefunds.text = pickRefunds.description
         
     } //end separateTotals()
     
@@ -488,7 +519,7 @@ class EOD_ViewController: UIViewController {
         
     }
     
-    func createAlert_ContainsText(title: String, message: String)
+    func createAlert_ResetDay(title: String, message: String)
     {
         
         //create alert controller
@@ -527,13 +558,11 @@ class EOD_ViewController: UIViewController {
         
         alert.addTextField(configurationHandler: { (textField: UITextField) -> Void in textField.placeholder = "Password"})
         
-        
-        
-        
-        
         self.present(alert, animated: true, completion: nil)
         
     }
+    
+    
     
     
     override func viewDidLoad() {
