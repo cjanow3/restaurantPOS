@@ -31,6 +31,9 @@ class Cell_ViewController: UIViewController {
     var cCashCredit:String?
     var cPickupDelivery:String?
     
+    var cPickup:Bool?
+    var cCash:Bool?
+    
     var cTip:Double?
     var cDeliveryFee:Double?
     var cPrice:Double?
@@ -40,6 +43,52 @@ class Cell_ViewController: UIViewController {
     {
         dismiss(animated: true, completion: nil)
 
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if (segue.identifier == "editorderseg")
+        {
+            let destVC = segue.destination as! EditOrder_ViewController
+            
+            let anOrder = restaurantController.OrderItem(NAME: cName!, ADDRESS: cAddress!, VENDOR: cVendor!, PRICE: cPrice!, TIP: cTip!, DELIVFEE: cDeliveryFee!, PICKUP: cPickup!, CASH: cCash!)
+            
+            destVC.cName = anOrder.getName()
+            destVC.cVendor = anOrder.getVendor()
+            destVC.cTip = anOrder.getTip()
+            destVC.cDeliveryFee = anOrder.getDeliveryFee()
+            destVC.cRefund = anOrder.getRefund()
+            destVC.cPickup = anOrder.getPickup()
+            destVC.cCash = anOrder.getCash()
+            
+            if (anOrder.getPickup())
+            {
+                destVC.cPickupDelivery = "Pickup"
+                destVC.cAddress = "None -- Pickup"
+            } else {
+                destVC.cPickupDelivery = "Delivery"
+                destVC.cAddress = anOrder.getAddress()
+            }
+            
+            if (anOrder.getCash())
+            {
+                destVC.cCashCredit = "Cash"
+            } else {
+                destVC.cCashCredit = "Credit"
+            }
+            
+            
+            } // end indexPath -- should not ever be null -- however gets information for selected cell
+        } //end detailseg option
+
+    
+    @IBAction func unwindEODView(segue: UIStoryboardSegue)
+    {
+        //print("unwindEODView fired in first view")
+        
+        if segue.source is EditOrder_ViewController
+        {
+            //do something here if we want to pass info from previous seg (EOD)
+        }
     }
     
     override func viewDidLoad() {

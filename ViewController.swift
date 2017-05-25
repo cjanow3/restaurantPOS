@@ -315,25 +315,28 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 
                 let destVC = segue.destination as! Cell_ViewController
                 
-                destVC.cName = list[indexPath.row].name
-                destVC.cVendor = list[indexPath.row].vendor
-                destVC.cTip = list[indexPath.row].tip
-                destVC.cPrice = list[indexPath.row].price
-                destVC.cDeliveryFee = list[indexPath.row].delivFee
-                destVC.cRefund = list[indexPath.row].refund
+                destVC.cName = list[indexPath.row].getName()
+                destVC.cVendor = list[indexPath.row].getVendor()
+                destVC.cTip = list[indexPath.row].getTip()
+                destVC.cPrice = list[indexPath.row].getPrice()
+                destVC.cDeliveryFee = list[indexPath.row].getDeliveryFee()
+                destVC.cRefund = list[indexPath.row].getRefund()
+                
+                destVC.cCash = list[indexPath.row].getCash()
+                destVC.cPickup = list[indexPath.row].getPickup()
                 
                 //determine if pickup/delivery -- also update address accordingly
-                if (list[indexPath.row].pickup) {
+                if (list[indexPath.row].getPickup()) {
                     destVC.cPickupDelivery = "Pickup"
                     destVC.cAddress = "None -- Pickup"
                     
                 } else {
                     destVC.cPickupDelivery = "Delivery"
-                    destVC.cAddress = list[indexPath.row].address
+                    destVC.cAddress = list[indexPath.row].getAddress()
                 }
                 
                 //determine if cash/credit
-                if (list[indexPath.row].cash)
+                if (list[indexPath.row].getCash())
                 {
                     destVC.cCashCredit = "Cash"
                 } else {
