@@ -15,8 +15,7 @@ let deliveryVendors = ["Delivery.com", "Eat24", "Foodler", "Groupon", "Grubhub",
 class restaurantController
 {
     
-    class func getContext() -> NSManagedObjectContext
-    {
+    class func getContext() -> NSManagedObjectContext {
         return restaurantController.persistentContainer.viewContext
     
     }
@@ -70,8 +69,8 @@ class restaurantController
     
     
     //MARK: order struct and its functions to store/retrieve/manipulate data
-    struct OrderItem
-    {
+    struct OrderItem {
+        
         var name:String?
         var address:String?
         var vendor:String?
@@ -80,10 +79,10 @@ class restaurantController
         var delivFee:Double?
         var pickup:Bool
         var cash:Bool
-        var refund:Double
+        var refund:Double?
         
-        init()
-        {
+        init() {
+            
             name = ""
             address = ""
             vendor = ""
@@ -95,8 +94,8 @@ class restaurantController
             cash = true
         }
         
-        init(NAME:String, ADDRESS:String, VENDOR:String, PRICE:Double, TIP:Double, DELIVFEE:Double, PICKUP:Bool, CASH:Bool)
-        {
+        init(NAME:String, ADDRESS:String, VENDOR:String, PRICE:Double, TIP:Double, DELIVFEE:Double, PICKUP:Bool, CASH:Bool, REFUND:Double) {
+            
             name = NAME;
             address = ADDRESS;
             vendor = VENDOR;
@@ -197,12 +196,11 @@ class restaurantController
         
         func getRefund() -> Double
         {
-            return refund
+            return refund!
         }
     }
     
-    class func storeOrder_OBJECT(newOrder:OrderItem)
-    {
+    class func storeOrder_OBJECT(newOrder:OrderItem) {
         let context = getContext();
         
         let entity = NSEntityDescription.entity(forEntityName: "Order", in: context);
@@ -217,6 +215,7 @@ class restaurantController
         managedObj.setValue(newOrder.delivFee, forKey: "delivFee");
         managedObj.setValue(newOrder.pickup, forKey: "pickup")
         managedObj.setValue(newOrder.cash, forKey: "cash")
+        managedObj.setValue(newOrder.refund, forKey: "refund")
         
         
         do
@@ -232,30 +231,23 @@ class restaurantController
         
     } //end save function
     
-    class func fetchOrders() -> [OrderItem]
-    {
+    class func fetchOrders() -> [OrderItem] {
         var array = [OrderItem]()
         
         let fetchRequest:NSFetchRequest<Order> = Order.fetchRequest();
         
-        do
-        {
+        do {
             let fetchResult = try getContext().fetch(fetchRequest);
             
-            for res in fetchResult
-            {
+            for res in fetchResult {
                 
-                let anOrder = OrderItem(NAME: res.name!, ADDRESS: res.address!, VENDOR: res.vendor!, PRICE: res.price, TIP: res.tip, DELIVFEE: res.delivFee, PICKUP: res.pickup, CASH: res.cash)
-                
-
+                let anOrder = OrderItem(NAME: res.name!, ADDRESS: res.address!, VENDOR: res.vendor!, PRICE: res.price, TIP: res.tip, DELIVFEE: res.delivFee, PICKUP: res.pickup, CASH: res.cash, REFUND: res.refund)
                 
                 array.append(anOrder);
-                
             }
         }
             
-        catch
-        {
+        catch {
             print(error.localizedDescription)
         }
         
@@ -264,8 +256,7 @@ class restaurantController
     
 
     //MARK: Delete from core data functions
-    class func clean_ALL_CoreData()
-    {
+    class func clean_ALL_CoreData() {
         
         let fetchRequest:NSFetchRequest<Order> = Order.fetchRequest();
         
@@ -285,8 +276,7 @@ class restaurantController
         }
     } //end clean_ALL_CoreData()
     
-    class func clean_SPECIFIC_CoreData()
-    {
+    class func clean_SPECIFIC_CoreData() {
         
         let fetchRequest:NSFetchRequest<Order> = Order.fetchRequest();
         
@@ -300,15 +290,12 @@ class restaurantController
         let deleteRequest = NSBatchDeleteRequest(fetchRequest:
             fetchRequest as! NSFetchRequest<NSFetchRequestResult>);
         
-        do
-        {
+        do {
             print("Deleting specific content(s)");
             //Print are you sure message alert -- yes or no buttons
             try getContext().execute(deleteRequest);
-            
         }
-        catch
-        {
+        catch {
             print(error.localizedDescription);
         }
     } //end cleanCoreData()
