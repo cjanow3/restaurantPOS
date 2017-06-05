@@ -27,6 +27,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     @IBOutlet weak var tf_Tip: UITextField!
     @IBOutlet weak var tf_DeliveryFee: UITextField!
     
+    
     //MARK: Picker View for vendor -- includes list and functions needed for picker view
     let vendors = ["Amazon" , "Caviar", "Delivery.com", "Doordash", "Eat24" , "Foodler", "Groupon", "Grubhub" , "In Store", "Postmates", "Seamless", "SLICE", "Uber"]
     @IBOutlet weak var vendor_Picker: UIPickerView!
@@ -92,15 +93,13 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             let deleteRequest = NSBatchDeleteRequest(fetchRequest:
                 fetchRequest as! NSFetchRequest<NSFetchRequestResult>);
             
-            do
-            {
+            do {
                 print("Deleting specific content(s)");
                 //Print are you sure message alert -- yes or no buttons
                 try restaurantController.getContext().execute(deleteRequest);
                 
-            }
-            catch
-            {
+            } catch {
+                
                 print(error.localizedDescription);
             }
 
@@ -112,8 +111,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         }
     }
     
-    func populate()
-    {
+    func populate() {
+        
         list = restaurantController.fetchOrders()
         
         refresher.endRefreshing()
@@ -130,8 +129,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     //pickup/delivery
     @IBAction func pickupdelivery(_ sender: Any) {
         
-        switch pickupdeliverySeg.selectedSegmentIndex
-        {
+        switch pickupdeliverySeg.selectedSegmentIndex {
+            
         case 0:
             isPickup = true;
             tf_CustomerAddr.isUserInteractionEnabled = false
@@ -154,8 +153,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     //cash/credit
     @IBAction func cashcredit(_ sender: Any) {
         
-        switch cashcreditSeg.selectedSegmentIndex
-        {
+        switch cashcreditSeg.selectedSegmentIndex {
+            
         case 0:
             isCash = true
             //print("cash")
@@ -173,8 +172,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     
     
     //MARK: UIAlert functions
-    func createSimpleAlert(title: String, message: String)
-    {
+    func createSimpleAlert(title: String, message: String) {
+        
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
         
@@ -184,8 +183,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         
     }
     
-    func createAlert(title: String, message: String, theOrder:restaurantController.OrderItem)
-    {
+    func createAlert(title: String, message: String, theOrder:restaurantController.OrderItem) {
+        
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         
         //create cancel action
@@ -199,13 +198,14 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             self.tf_CustomerName.text = ""
             
-            if (self.pickupdeliverySeg.selectedSegmentIndex == 0)
-            {
+            if (self.pickupdeliverySeg.selectedSegmentIndex == 0) {
+                
                 self.tf_CustomerAddr.text = "Pickup"
                 
-            } else{
-                self.tf_CustomerAddr.text = ""
+            } else {
                 
+                self.tf_CustomerAddr.text = ""
+            
             }
             
             self.tf_Vendor.text = ""
@@ -254,14 +254,15 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
         else
         {
-            
+              
             guard let orderName = self.tf_CustomerName.text, let orderAddress = self.tf_CustomerAddr.text, let orderVendor = self.tf_Vendor.text, let orderPrice = Double(self.tf_Price.text!), let orderTip = Double(self.tf_Tip.text!), let orderDelivFee = Double(self.tf_DeliveryFee.text!) else
             {
                 createSimpleAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
                 return
             }
             
-            let anOrder = restaurantController.OrderItem(NAME: orderName, ADDRESS: orderAddress, VENDOR: orderVendor, PRICE: orderPrice, TIP: orderTip, DELIVFEE: orderDelivFee, PICKUP: isPickup, CASH: isCash)
+            let anOrder = restaurantController.OrderItem(NAME: orderName, ADDRESS: orderAddress, VENDOR: orderVendor, PRICE: orderPrice, TIP: orderTip, DELIVFEE: orderDelivFee, PICKUP: isPickup, CASH: isCash, REFUND: 0.0)
+            
             
             
             if (isPickup)
@@ -293,14 +294,13 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     
     //MARK: Segues
     
-    @IBAction func endofday(_ sender: Any)
-    {
+    @IBAction func endofday(_ sender: Any) {
         //performSegue(withIdentifier: "endofdayseg", sender: self)
     }
     
-    @IBAction func unwindEODView(segue: UIStoryboardSegue)
-    {
-        //print("unwindEODView fired in first view")
+    @IBAction func unwindEODView(segue: UIStoryboardSegue) {
+        
+        //print("unwindEODView fired in View Controller")
         
         if segue.source is EOD_ViewController
         {
@@ -358,6 +358,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         refresher.addTarget(self, action: #selector(ViewController.populate), for: .valueChanged)
         tableView.addSubview(refresher)
         
+        tf_Vendor.isUserInteractionEnabled = false
+
         
         
     }

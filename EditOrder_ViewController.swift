@@ -365,17 +365,6 @@ class EditOrder_ViewController: UIViewController {
         
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Order")
         
-        /*
- 
-         guard let orderName = self.tf_CustomerName.text, let orderAddress = self.tf_CustomerAddr.text, let orderVendor = self.tf_Vendor.text, let orderPrice = Double(self.tf_Price.text!), let orderTip = Double(self.tf_Tip.text!), let orderDelivFee = Double(self.tf_DeliveryFee.text!) else
-         {
-         createSimpleAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
-         return
-         }
-
-         
-         */
-        
         
         if (editSegControl.selectedSegmentIndex == 0)
         {
@@ -621,7 +610,8 @@ class EditOrder_ViewController: UIViewController {
         {
             if priceTF.text != ""
             {
-                guard let newPrice = Double(priceTF.text!) else
+                //let guard statement
+                guard let newPrice = Double(priceTF.text!), let cPrice = cPrice else
                 {
                     createSimpleAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
                     return
@@ -635,7 +625,7 @@ class EditOrder_ViewController: UIViewController {
                     {
                         if ( (result.value(forKey: "price") as? Double) != nil &&  (result.value(forKey: "price") as? Double) == cPrice && (result.value(forKey: "name") as? String) != nil &&  (result.value(forKey: "name") as? String) == cName )
                         {
-                            createSimpleAlert(title: "Price Edited", message: "Price changed from \(cPrice!) to \(newPrice)")
+                            createSimpleAlert(title: "Price Edited", message: "Price changed from \(cPrice) to \(newPrice)")
                             priceTF.text = ""
                             
                             result.setValue(newPrice, forKey: "price")
@@ -647,7 +637,7 @@ class EditOrder_ViewController: UIViewController {
                     print(error.localizedDescription)
                     return
                 }
-
+                
             } else{
                 createSimpleAlert(title: "Error", message: "Attemping to edit order without any entry")
             }
@@ -694,7 +684,7 @@ class EditOrder_ViewController: UIViewController {
         {
             if refundTF.text != ""
             {
-                guard let newRefund = Double(refundTF.text!) else
+                guard let newRefund = Double(refundTF.text!), let cRefund = cRefund else
                 {
                     createSimpleAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
                     return
@@ -708,7 +698,7 @@ class EditOrder_ViewController: UIViewController {
                     {
                         if ( (result.value(forKey: "refund") as? Double) != nil && (result.value(forKey: "refund") as? Double) == cRefund && (result.value(forKey: "name") as? String) != nil &&  (result.value(forKey: "name") as? String) == cName )
                         {
-                            createSimpleAlert(title: "Refund Edited", message: "Refund changed from \(cRefund!) to \(newRefund)")
+                            createSimpleAlert(title: "Refund Edited", message: "Refund changed from \(cRefund) to \(newRefund)")
                             refundTF.text = ""
                             
                             result.setValue(newRefund, forKey: "refund")
@@ -768,9 +758,9 @@ class EditOrder_ViewController: UIViewController {
     
     func createSimpleAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        let ok = UIAlertAction(title: "OK", style: .default, handler: nil)
         
-        alert.addAction(cancel)
+        alert.addAction(ok)
         
         self.present(alert, animated: true, completion: nil)
         

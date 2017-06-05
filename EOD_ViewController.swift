@@ -116,7 +116,7 @@ class EOD_ViewController: UIViewController {
     
     @IBAction func resetDriverPay(_ sender: Any)
     {
-        createAlert(title: "Confirm", message: "Really reset drivery payout?")
+        createAlert(title: "Confirm", message: "Nothing is happening (yet)")
     }
     
     //MARK: Reset day

@@ -50,7 +50,7 @@ class Cell_ViewController: UIViewController {
         {
             let destVC = segue.destination as! EditOrder_ViewController
             
-            let anOrder = restaurantController.OrderItem(NAME: cName!, ADDRESS: cAddress!, VENDOR: cVendor!, PRICE: cPrice!, TIP: cTip!, DELIVFEE: cDeliveryFee!, PICKUP: cPickup!, CASH: cCash!)
+            let anOrder = restaurantController.OrderItem(NAME: cName!, ADDRESS: cAddress!, VENDOR: cVendor!, PRICE: cPrice!, TIP: cTip!, DELIVFEE: cDeliveryFee!, PICKUP: cPickup!, CASH: cCash!, REFUND: cRefund!)
             
             destVC.cName = anOrder.getName()
             destVC.cVendor = anOrder.getVendor()
@@ -59,6 +59,8 @@ class Cell_ViewController: UIViewController {
             destVC.cRefund = anOrder.getRefund()
             destVC.cPickup = anOrder.getPickup()
             destVC.cCash = anOrder.getCash()
+            destVC.cPrice = anOrder.getPrice()
+            destVC.cRefund = anOrder.getRefund()
             
             if (anOrder.getPickup())
             {

@@ -104,7 +104,7 @@ class restaurantController
             tip = TIP;
             pickup = PICKUP;
             cash = CASH
-            refund = 0.0
+            refund = REFUND
         }
         
         //setters
