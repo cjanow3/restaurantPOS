@@ -9,7 +9,7 @@
 import UIKit
 import CoreData
 
-class EditOrder_ViewController: UIViewController {
+class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource {
     
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     let context = restaurantController.getContext()
@@ -44,8 +44,90 @@ class EditOrder_ViewController: UIViewController {
     @IBOutlet weak var cashCreditLabel: UILabel!
     @IBOutlet weak var cashCreditTF: UITextField!
     
-    //Picker View -- PickupDelivery & Cash/credit & Vendor
+    @IBOutlet weak var currentLabel: UILabel!
+    @IBOutlet weak var currentEditLabel: UILabel!
     
+    //MARK: Picker View -- PickupDelivery & Cash/credit & Vendor
+    @IBOutlet weak var pickupDeliveryPicker: UIPickerView!
+    @IBOutlet weak var cashCreditPicker: UIPickerView!
+    @IBOutlet weak var vendorPicker: UIPickerView!
+    
+
+    
+    let cashCredit = ["Cash", "Credit"]
+    let pickupDelivery = ["Pickup", "Delivery"]
+    let vendors = ["Amazon", "Caviar", "Doordash", "Eat24", "Grubhub", "Postmates", "Uber" , "Delivery.com", "Eat24", "Foodler", "Groupon", "Grubhub", "Seamless", "SLICE"]
+    
+
+    
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 1
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+        
+        if pickerView == pickupDeliveryPicker
+        {
+            return pickupDelivery[row]
+        }
+        
+        else if pickerView == cashCreditPicker
+        {
+            return cashCredit[row]
+        }
+            
+        else if pickerView == vendorPicker
+        {
+            return vendors[row]
+        }
+        
+        else
+        {
+            return ""
+        }
+        
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        
+        if pickerView == pickupDeliveryPicker
+        {
+            return pickupDelivery.count
+        }
+            
+        else if pickerView == cashCreditPicker
+        {
+            return cashCredit.count
+        }
+
+        else if pickerView == vendorPicker
+        {
+            return vendors.count
+        }
+            
+        else
+        {
+            return 2
+        }
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        
+        if pickerView == pickupDeliveryPicker
+        {
+            pickupDeliveryTF.text = pickupDelivery[row]
+        }
+            
+        else if pickerView == cashCreditPicker
+        {
+            cashCreditTF.text = cashCredit[row]
+        }
+        
+        else if pickerView == vendorPicker
+        {
+            vendorTF.text = vendors[row]
+        }
+    }
     
     var cName:String?
     var cVendor:String?
@@ -93,8 +175,13 @@ class EditOrder_ViewController: UIViewController {
             pickupDeliveryLabel.isHidden = true
             pickupDeliveryTF.isHidden = true
             
-          //  cashCreditPick.isHidden = true
-          //  pickupDeliveryPick.isHidden = true
+            cashCreditPicker.isHidden = true
+            pickupDeliveryPicker.isHidden = true
+            vendorPicker.isHidden = true
+            
+            currentEditLabel.text = cName
+            
+            
 
         case 1:
             vendorLabel.isHidden = false
@@ -124,8 +211,11 @@ class EditOrder_ViewController: UIViewController {
             pickupDeliveryLabel.isHidden = true
             pickupDeliveryTF.isHidden = true
             
-            //cashCreditPick.isHidden = true
-           // pickupDeliveryPick.isHidden = true
+            cashCreditPicker.isHidden = true
+            pickupDeliveryPicker.isHidden = true
+            vendorPicker.isHidden = false
+
+            currentEditLabel.text = cVendor
 
             
         case 2:
@@ -156,9 +246,11 @@ class EditOrder_ViewController: UIViewController {
             pickupDeliveryLabel.isHidden = true
             pickupDeliveryTF.isHidden = true
             
-           // cashCreditPick.isHidden = true
-           // pickupDeliveryPick.isHidden = true
+            cashCreditPicker.isHidden = true
+            pickupDeliveryPicker.isHidden = true
+            vendorPicker.isHidden = true
 
+            currentEditLabel.text = cAddress
             
         case 3:
             vendorLabel.isHidden = true
@@ -188,8 +280,12 @@ class EditOrder_ViewController: UIViewController {
             pickupDeliveryLabel.isHidden = true
             pickupDeliveryTF.isHidden = true
             
-          ///  cashCreditPick.isHidden = false
-           // pickupDeliveryPick.isHidden = true
+            cashCreditPicker.isHidden = false
+            pickupDeliveryPicker.isHidden = true
+            vendorPicker.isHidden = true
+
+            
+            currentEditLabel.text = cCashCredit
 
         case 4:
             vendorLabel.isHidden = true
@@ -219,9 +315,11 @@ class EditOrder_ViewController: UIViewController {
             pickupDeliveryLabel.isHidden = false
             pickupDeliveryTF.isHidden = false
             
-            // cashCreditPick.isHidden = true
-         //   pickupDeliveryPick.isHidden = false
+            cashCreditPicker.isHidden = true
+            pickupDeliveryPicker.isHidden = false
+            vendorPicker.isHidden = true
 
+            currentEditLabel.text = cPickupDelivery
             
         case 5:
             vendorLabel.isHidden = true
@@ -251,8 +349,11 @@ class EditOrder_ViewController: UIViewController {
             pickupDeliveryLabel.isHidden = true
             pickupDeliveryTF.isHidden = true
             
-           // cashCreditPick.isHidden = true
-           // pickupDeliveryPick.isHidden = true
+            cashCreditPicker.isHidden = true
+            pickupDeliveryPicker.isHidden = true
+            vendorPicker.isHidden = true
+
+            currentEditLabel.text = cTip?.description
 
             
         case 6:
@@ -283,9 +384,11 @@ class EditOrder_ViewController: UIViewController {
             pickupDeliveryLabel.isHidden = true
             pickupDeliveryTF.isHidden = true
             
-          //  cashCreditPick.isHidden = true
-          //  pickupDeliveryPick.isHidden = true
+            cashCreditPicker.isHidden = true
+            pickupDeliveryPicker.isHidden = true
+            vendorPicker.isHidden = true
 
+            currentEditLabel.text = cPrice?.description
             
         case 7:
             vendorLabel.isHidden = true
@@ -315,8 +418,11 @@ class EditOrder_ViewController: UIViewController {
             refundLabel.isHidden = true
             refundTF.isHidden = true
             
-        //    cashCreditPick.isHidden = true
-         //   pickupDeliveryPick.isHidden = true
+            cashCreditPicker.isHidden = true
+            pickupDeliveryPicker.isHidden = true
+            vendorPicker.isHidden = true
+
+            currentEditLabel.text = cDeliveryFee?.description
 
         case 8:
             vendorLabel.isHidden = true
@@ -347,8 +453,12 @@ class EditOrder_ViewController: UIViewController {
             pickupDeliveryTF.isHidden = true
             
             
-         //   cashCreditPick.isHidden = true
-          //  pickupDeliveryPick.isHidden = true
+            cashCreditPicker.isHidden = true
+            pickupDeliveryPicker.isHidden = true
+            vendorPicker.isHidden = true
+            
+            currentEditLabel.text = cRefund?.description
+
 
             
         default:
@@ -358,9 +468,9 @@ class EditOrder_ViewController: UIViewController {
         
     } //end seg control edit display options
     
+    
+    
     //MARK: Save button
-    
-    
     @IBAction func saveEditOrder(_ sender: Any) {
         
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Order")
@@ -749,9 +859,20 @@ class EditOrder_ViewController: UIViewController {
         
         cashCreditLabel.isHidden = true
         cashCreditTF.isHidden = true
+        
  
         pickupDeliveryLabel.isHidden = true
         pickupDeliveryTF.isHidden = true
+        
+        cashCreditPicker.isHidden = true
+        pickupDeliveryPicker.isHidden = true
+        vendorPicker.isHidden = true
+        
+        cashCreditTF.isUserInteractionEnabled = false
+        pickupDeliveryTF.isUserInteractionEnabled = false
+        vendorTF.isUserInteractionEnabled = false
+
+        currentEditLabel.text = cName
     }
     
     //MARK: Alert function
