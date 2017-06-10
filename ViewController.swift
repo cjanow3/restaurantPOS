@@ -29,23 +29,67 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     
     
     //MARK: Picker View for vendor -- includes list and functions needed for picker view
-    let vendors = ["Amazon" , "Caviar", "Delivery.com", "Doordash", "Eat24" , "Foodler", "Groupon", "Grubhub" , "In Store", "Postmates", "Seamless", "SLICE", "Uber"]
-    @IBOutlet weak var vendor_Picker: UIPickerView!
+    let pickupVendors =   ["Amazon", "Caviar", "Doordash", "Eat24", "Grubhub", "Postmates", "Uber"]
+    let deliveryVendors = ["Delivery.com", "Eat24", "Foodler", "Groupon", "Grubhub", "Seamless", "SLICE"]
+    
+    @IBOutlet weak var pickupVendorPicker: UIPickerView!
+    @IBOutlet weak var deliveryVendorPicker: UIPickerView!
     
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 1
     }
     
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        return vendors[row]
+        
+        if pickerView == pickupVendorPicker
+        {
+            return pickupVendors[row]
+        }
+        
+        else if pickerView == deliveryVendorPicker
+        {
+            return deliveryVendors[row]
+        }
+        
+        else
+        {
+            return ""
+        }
+        
     }
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        return vendors.count
+        
+        if pickerView == pickupVendorPicker
+        {
+            return pickupVendors.count
+        }
+            
+        else if pickerView == deliveryVendorPicker
+        {
+            return deliveryVendors.count
+        }
+            
+        else
+        {
+            return 1
+        }
+
     }
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        tf_Vendor.text = vendors[row]
+        
+        
+        if pickerView == pickupVendorPicker
+        {
+            tf_Vendor.text = pickupVendors[row]
+        }
+            
+        else if pickerView == deliveryVendorPicker
+        {
+            tf_Vendor.text = deliveryVendors[row]
+        }
+
     }
     //end picker view
     
@@ -137,6 +181,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             tf_DeliveryFee.isUserInteractionEnabled = false
             tf_CustomerAddr.text = "Pickup"
             tf_DeliveryFee.text = "0"
+            pickupVendorPicker.isHidden = false
+            deliveryVendorPicker.isHidden = true
             
         case 1:
             isPickup = false;
@@ -144,6 +190,9 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             tf_DeliveryFee.isUserInteractionEnabled = true
             tf_CustomerAddr.text = ""
             tf_DeliveryFee.text = "0"
+            pickupVendorPicker.isHidden = true
+            deliveryVendorPicker.isHidden = false
+            
             
         default:
             break;
@@ -261,30 +310,40 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 return
             }
             
-            let anOrder = restaurantController.OrderItem(NAME: orderName, ADDRESS: orderAddress, VENDOR: orderVendor, PRICE: orderPrice, TIP: orderTip, DELIVFEE: orderDelivFee, PICKUP: isPickup, CASH: isCash, REFUND: 0.0)
-            
-            
-            
-            if (isPickup)
+            //Another check to see if Groupon, SLICE, or Seamless were inputted with cash -- it is credit only
+            if ( isCash && (orderVendor == "Groupon" || orderVendor == "SLICE" || orderVendor == "Seamless") )
             {
-                //if (anOrder.getVendor())
-                if (isCash)
-                {
-                    createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Cash Pickup\n", theOrder: anOrder)
-                }else{
-                    createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Credit Pickup\n", theOrder: anOrder)
-                }
+                createSimpleAlert(title: "Check input", message: "Attempted to add order with vendor that doesn't accept cash.")
+            } else {
                 
-            }else
-            {
-                if (isCash)
+                
+                let anOrder = restaurantController.OrderItem(NAME: orderName, ADDRESS: orderAddress, VENDOR: orderVendor, PRICE: orderPrice, TIP: orderTip, DELIVFEE: orderDelivFee, PICKUP: isPickup, CASH: isCash, REFUND: 0.0)
+                
+                
+                if (isPickup)
                 {
-                    createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Cash Delivery\n", theOrder: anOrder)
-                }else{
-                    createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Credit Delivery\n", theOrder: anOrder)
+                    //if (anOrder.getVendor())
+                    if (isCash)
+                    {
+                        createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Cash Pickup\n", theOrder: anOrder)
+                    }else{
+                        createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Credit Pickup\n", theOrder: anOrder)
+                    }
+                    
+                }else
+                {
+                    if (isCash)
+                    {
+                        createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Cash Delivery\n", theOrder: anOrder)
+                    }else{
+                        createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Credit Delivery\n", theOrder: anOrder)
+                    }
+                    
                 }
                 
             }
+            
+
             
             
         }
@@ -298,11 +357,11 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         //performSegue(withIdentifier: "endofdayseg", sender: self)
     }
     
-    @IBAction func unwindEODView(segue: UIStoryboardSegue) {
+    @IBAction func unwindView(segue: UIStoryboardSegue) {
         
         //print("unwindEODView fired in View Controller")
         
-        if segue.source is EOD_ViewController
+        if segue.source is OrderStatsViewController
         {
             //do something here if we want to pass info from previous seg (EOD)
         }
@@ -359,7 +418,10 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         tableView.addSubview(refresher)
         
         tf_Vendor.isUserInteractionEnabled = false
+        tf_CustomerAddr.isUserInteractionEnabled = false
 
+        pickupVendorPicker.isHidden = false
+        deliveryVendorPicker.isHidden = true
         
         
     }

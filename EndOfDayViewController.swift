@@ -1,5 +1,5 @@
 //
-//  ResetViewController.swift
+//  EndOfDayVieController.swift
 //  restaurantPOS_Assist
 //
 //  Created by Chris Janowski on 6/7/17.
@@ -8,21 +8,21 @@
 
 import UIKit
 
+
 class EndOfDayViewController: UIViewController {
-    
-    
-    
-    
     
     
     //MARK: Reset day
 
     @IBAction func resetDay(_ sender: Any)
     {
-        
         createAlert_ResetDay(title: "Enter Password", message: "")
-        
     }
+    
+    
+    
+
+    
     
     func createAlert(title: String, message: String)
     {
