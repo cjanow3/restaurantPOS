@@ -12,7 +12,7 @@ import CoreData
 var isPickup = true
 var isCash = true
 
-class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource {
+class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate {
     
     //MARK: Image view for Big G's Logo
     
@@ -109,10 +109,12 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ViewControllerTableViewCell
         
-        cell.orderName.text = list[indexPath.row].name
-        cell.orderVendor.text = list[indexPath.row].vendor
-        cell.orderPrice.text = list[indexPath.row].price?.description
-        if (list[indexPath.row].pickup)
+        cell.orderName.text = list[indexPath.row].getName()
+        cell.orderVendor.text = list[indexPath.row].getVendor()
+        let price = list[indexPath.row].getPrice() - list[indexPath.row].getRefund()
+        cell.orderPrice.text = price.description
+        
+        if (list[indexPath.row].getPickup())
         {
             cell.orderPickupDelivery.text = "Pickup"
 
@@ -422,6 +424,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
 
         pickupVendorPicker.isHidden = false
         deliveryVendorPicker.isHidden = true
+        
         
         
     }

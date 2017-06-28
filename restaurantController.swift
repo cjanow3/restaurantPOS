@@ -9,8 +9,7 @@
 import Foundation
 import CoreData
 
-let pickupVendors =   ["Amazon", "Caviar", "Doordash", "Eat24", "Grubhub", "Postmates", "Uber"]
-let deliveryVendors = ["Delivery.com", "Eat24", "Foodler", "Groupon", "Grubhub", "Seamless", "SLICE"]
+
 
 class restaurantController
 {
@@ -200,6 +199,7 @@ class restaurantController
         }
     }
     
+    //Stores an OrderItem into coredata
     class func storeOrder_OBJECT(newOrder:OrderItem) {
         let context = getContext();
         
@@ -231,6 +231,7 @@ class restaurantController
         
     } //end save function
     
+    //Returns an array of type OrderItem
     class func fetchOrders() -> [OrderItem] {
         var array = [OrderItem]()
         
