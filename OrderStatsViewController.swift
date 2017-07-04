@@ -8,9 +8,53 @@
 
 import UIKit
 
+
 class OrderStatsViewController: UIViewController {
 
     //MARK: Labels used for cash/credit/total$/total#
+    
+    //delivery & pickup header for view
+    @IBOutlet weak var deliveryHeader: UILabel!
+    @IBOutlet weak var pickupHeader: UILabel!
+    
+    
+    //Identifiers for pickups
+    @IBOutlet weak var amazonIdentifier: UILabel!
+    @IBOutlet weak var caviarIdentifier: UILabel!
+    @IBOutlet weak var doordashIdentifier: UILabel!
+    @IBOutlet weak var grouponIdentifier: UILabel!
+    @IBOutlet weak var uberIdentifier: UILabel!
+    @IBOutlet weak var postmatesIdentifier: UILabel!
+    @IBOutlet weak var eat24PickupIdentifier: UILabel!
+    //End identifiers for pickups
+    
+    //Identifiers for delivery
+    
+    @IBOutlet weak var dcomIdentifier: UILabel!
+    @IBOutlet weak var eat24DeliveryIdentifier: UILabel!
+    @IBOutlet weak var foodlerIdentifier: UILabel!
+    @IBOutlet weak var seamlessIdentifier: UILabel!
+    @IBOutlet weak var sliceIdentifier: UILabel!
+    
+    @IBOutlet weak var instoreIdentifier: UILabel!
+    //End identifiers for delivery
+    
+    //Identifiers for both pickup/delivery
+    @IBOutlet weak var grubhubIdentifier: UILabel!
+    //End identifiers for both pickup/delivery
+    
+    //Column Header Identifiers
+    @IBOutlet weak var creditIdentifier: UILabel!
+    @IBOutlet weak var totalMoneyIdentifier: UILabel!
+    @IBOutlet weak var totalNumIdentifier: UILabel!
+    @IBOutlet weak var cashIdentifier: UILabel!
+    //End column header identifiers
+    
+    //Driver info Indentifiers
+    
+    
+    
+    //End driver info identifiers
     
     
     //Pickup
@@ -65,6 +109,12 @@ class OrderStatsViewController: UIViewController {
     @IBOutlet weak var foodlerTotalLabel: UILabel!
     @IBOutlet weak var foodlerNumLabel: UILabel!
     
+    @IBOutlet weak var instoreCashLabel: UILabel!
+    @IBOutlet weak var instoreCreditLabel: UILabel!
+    @IBOutlet weak var instoreTotalLabel: UILabel!
+    @IBOutlet weak var instoreNumLabel: UILabel!
+    
+    
     //credit only
     @IBOutlet weak var grouponCreditLabel: UILabel!
     @IBOutlet weak var grouponTotalLabel: UILabel!
@@ -88,6 +138,27 @@ class OrderStatsViewController: UIViewController {
     
     //Final totals (on bottom on main storyboard)
     
+    //Identifiers for totals
+    //Pickup
+    @IBOutlet weak var totalPickupCreditIdentifier: UILabel!
+    @IBOutlet weak var totalPickupNumIdentifier: UILabel!
+    @IBOutlet weak var totalPickupRefundsIdentifier: UILabel!
+    
+    //Delivery
+    
+    @IBOutlet weak var totalDeliveryCreditIdentifier: UILabel!
+    @IBOutlet weak var totalDeliveryCashIdentifier: UILabel!
+    @IBOutlet weak var totalDeliveryIdentifier: UILabel!
+    
+    @IBOutlet weak var totalDeliveryNumIdentifier: UILabel!
+    @IBOutlet weak var totalDeliveryRefundsIdentifier: UILabel!
+    
+    //Totals for driver (still identifiers)
+    @IBOutlet weak var totalTipsIdentifier: UILabel!
+    @IBOutlet weak var totalDeliveryFeesIdentifier: UILabel!
+    @IBOutlet weak var driverPayoutIdentifier: UILabel!
+    //End identifiers for totals
+    
     @IBOutlet weak var totalPickupCredit: UILabel!
     @IBOutlet weak var totalPickupNum: UILabel!
     
@@ -99,9 +170,39 @@ class OrderStatsViewController: UIViewController {
     @IBOutlet weak var totalTips: UILabel!
     @IBOutlet weak var totalDeliveryFees: UILabel!
     @IBOutlet weak var driverPayout: UILabel!
+    @IBOutlet weak var driverAlreadyPaidOut: UILabel!
     
     @IBOutlet weak var deliveryRefunds: UILabel!
     @IBOutlet weak var pickupRefunds: UILabel!
+    
+    
+    //seg control to control which
+    
+    @IBOutlet weak var pdtViewSeg: UISegmentedControl!
+    
+    @IBAction func changeView(_ sender: Any)
+    {
+        switch pdtViewSeg.selectedSegmentIndex
+        {
+        case 0: //display pickup labels and hide delivery
+            
+            displayPickup()
+            
+        case 1: //display delivery
+            
+            displayDelivery()
+            
+            
+        case 2: //display totals
+            
+            displayTotals()
+            
+        default:
+            break
+            
+        }
+        
+    }
     
     
     //MARK: Return to main menu button
@@ -175,8 +276,12 @@ class OrderStatsViewController: UIViewController {
         var foodlerTotal = 0.0
         var foodlerNum = 0
         
-        //credit only
-        var grouponCredit = 0.0
+        var inStoreCash = 0.0
+        var inStoreCredit = 0.0
+        var inStoreTotal = 0.0
+        var inStoreNum = 0
+        
+        var grouponCredit = 0.0         //credit only
         var grouponTotal = 0.0
         var grouponNum = 0
         
@@ -214,14 +319,16 @@ class OrderStatsViewController: UIViewController {
         
         for order in orderList
         {
+
+            
             //get refund for each order regardless of pickup/delivery
             
             //Case 1: Order is a pickup
             if (order.getPickup())
             {
                 pickRefunds += order.getRefund()
-                
                 pickupCredit += order.getPrice()
+                pickupCredit -= order.getRefund()
                 pickupNum += 1
                 
                 if (order.getVendor() == "Amazon")
@@ -229,11 +336,14 @@ class OrderStatsViewController: UIViewController {
                     if (order.getCash())
                     {
                         amazonCash += order.getPrice()
+                        amazonCash -= order.getRefund()
                     } else{
                         amazonCredit += order.getPrice()
+                        amazonCredit -= order.getRefund()
 
                     }
                     amazonTotal += order.getPrice()
+                    amazonTotal -= order.getRefund()
                     amazonNum += 1
                 }
                 else if (order.getVendor() == "Caviar")
@@ -241,11 +351,14 @@ class OrderStatsViewController: UIViewController {
                     if (order.getCash())
                     {
                         caviarCash += order.getPrice()
+                        caviarCash -= order.getRefund()
                     } else{
                         caviarCredit += order.getPrice()
+                        caviarCredit -= order.getRefund()
 
                     }
                     caviarTotal += order.getPrice()
+                    caviarTotal -= order.getRefund()
                     caviarNum += 1
                 }
                 else if (order.getVendor() == "Doordash")
@@ -253,11 +366,13 @@ class OrderStatsViewController: UIViewController {
                     if (order.getCash())
                     {
                         doordashCash += order.getPrice()
+                        doordashCash -= order.getRefund()
                     } else{
                         doordashCredit += order.getPrice()
-                        
+                        doordashCredit -= order.getRefund()
                     }
                     doordashTotal += order.getPrice()
+                    doordashTotal -= order.getRefund()
                     doordashNum += 1
                 }
                 else if (order.getVendor() == "Eat24")
@@ -265,11 +380,14 @@ class OrderStatsViewController: UIViewController {
                     if (order.getCash())
                     {
                         eat24PickupCash += order.getPrice()
+                        eat24PickupCash -= order.getRefund()
                     } else{
                         eat24PickupCredit += order.getPrice()
+                        eat24PickupCredit -= order.getRefund()
                         
                     }
                     eat24PickupTotal += order.getPrice()
+                    eat24PickupTotal -= order.getRefund()
                     eat24PickupNum += 1
                 }
                 else if (order.getVendor() == "Grubhub")
@@ -277,11 +395,14 @@ class OrderStatsViewController: UIViewController {
                     if (order.getCash())
                     {
                         grubhubPickupCash += order.getPrice()
+                        grubhubPickupCash -= order.getRefund()
                     } else{
                         grubhubPickupCredit += order.getPrice()
+                        grubhubPickupCredit -= order.getRefund()
 
                     }
                     grubhubPickupTotal += order.getPrice()
+                    grubhubPickupTotal -= order.getRefund()
                     grubhubPickupNum += 1
                 }
                 else if (order.getVendor() == "Postmates")
@@ -289,11 +410,14 @@ class OrderStatsViewController: UIViewController {
                     if (order.getCash())
                     {
                         postmatesCash += order.getPrice()
+                        postmatesCash -= order.getRefund()
                     } else{
                         postmatesCredit += order.getPrice()
+                        postmatesCredit -= order.getRefund()
 
                     }
                     postmatesTotal += order.getPrice()
+                    postmatesTotal -= order.getRefund()
                     postmatesNum += 1
                 }
                 else if (order.getVendor() == "Uber")
@@ -301,11 +425,14 @@ class OrderStatsViewController: UIViewController {
                     if (order.getCash())
                     {
                         uberCash += order.getPrice()
+                        uberCash -= order.getRefund()
                     } else{
                         uberCredit += order.getPrice()
+                        uberCredit -= order.getRefund()
 
                     }
                     uberTotal += order.getPrice()
+                    uberTotal -= order.getRefund()
                     uberNum += 1
                 }
             } //end order = pickup
@@ -315,22 +442,35 @@ class OrderStatsViewController: UIViewController {
             {
                 delivRefunds += order.getRefund()
                 
-                //driver gets paid each delivery fee and tip for deliveries
+                //driver gets paid each delivery fee and tip for deliveries (even if they are in store))
+                
                 driverPay += order.getDeliveryFee()
                 driverPay += order.getTip()
                 
                 tips += order.getTip()
                 deliveryfees += order.getDeliveryFee()
                 
-                //increase # deliveries for each delivery order, add to total price
-                deliveryNum += 1
-                deliveryTotal += order.getPrice()
+
+                
+                //we do not want in store totals to be added b/c they are considered a sale made by us
+                
+                if (order.getVendor() != "In Store")
+                {
+                    //increase # deliveries for each delivery order, add to total price
+                    deliveryNum += 1
+                    
+                    deliveryTotal += order.getPrice()
+                    deliveryTotal -= order.getRefund()
+                }
+                
                 
                 if (order.getCash())
                 {
                     deliveryCash += order.getPrice()
+                    deliveryCash -= order.getRefund()
                 }else{
                     deliveryCredit += order.getPrice()
+                    deliveryCredit -= order.getRefund()
                 }
         
                 
@@ -339,24 +479,46 @@ class OrderStatsViewController: UIViewController {
                     if (order.getCash())
                     {
                         dcomCash += order.getPrice()
+                        dcomCash -= order.getRefund()
                         
                     }else{
                         dcomCredit += order.getPrice()
+                        dcomCredit -= order.getRefund()
                     }
                     
                     dcomTotal += order.getPrice()
+                    dcomTotal -= order.getRefund()
                     dcomNum += 1
+                }
+                    
+                else if (order.getVendor() == "In Store")
+                {
+                    if (order.getCash())
+                    {
+                        inStoreCash += order.getPrice()
+                        inStoreCash -= order.getRefund()
+                    } else {
+                        inStoreCredit += order.getPrice()
+                        inStoreCredit -= order.getRefund()
+                    }
+                    
+                    inStoreTotal += order.getPrice()
+                    inStoreTotal -= order.getRefund()
+                    inStoreNum += 1
                 }
                 else if (order.getVendor() == "Eat24")
                 {
                     if (order.getCash())
                     {
                         eat24DeliveryCash += order.getPrice()
+                        eat24DeliveryCash -= order.getRefund()
                     }else{
                         eat24DeliveryCredit += order.getPrice()
+                        eat24DeliveryCredit -= order.getRefund()
                     }
                     
                     eat24DeliveryTotal += order.getPrice()
+                    eat24DeliveryTotal -= order.getRefund()
                     eat24DeliveryNum += 1
                 }
                 else if (order.getVendor() == "Foodler")
@@ -364,17 +526,25 @@ class OrderStatsViewController: UIViewController {
                     if (order.getCash())
                     {
                         foodlerCash += order.getPrice()
+                        foodlerCash -= order.getRefund()
                     }else{
                         foodlerCredit += order.getPrice()
+                        foodlerCredit -= order.getRefund()
                     }
                     
                     foodlerTotal += order.getPrice()
+                    foodlerTotal -= order.getRefund()
                     foodlerNum += 1
+                    
                 }
                 else if (order.getVendor() == "Groupon")
                 {
                     grouponCredit += order.getPrice()
+                    grouponCredit -= order.getRefund()
+                    
                     grouponTotal += order.getPrice()
+                    grouponTotal -= order.getRefund()
+                    
                     grouponNum += 1
                 }
                 else if (order.getVendor() == "Grubhub")
@@ -382,23 +552,34 @@ class OrderStatsViewController: UIViewController {
                     if (order.getCash())
                     {
                         grubhubCash += order.getPrice()
+                        grubhubCash -= order.getRefund()
                     }else{
                         grubhubCredit += order.getPrice()
+                        grubhubCredit -= order.getRefund()
                     }
                     
                     grubhubTotal += order.getPrice()
+                    grubhubTotal -= order.getRefund()
                     grubhubNum += 1
                 }
                 else if (order.getVendor() == "Seamless")
                 {
                     seamlessCredit += order.getPrice()
+                    seamlessCredit -= order.getRefund()
+                    
                     seamlessTotal += order.getPrice()
+                    seamlessTotal -= order.getRefund()
+                    
                     seamlessNum += 1
                 }
                 else if (order.getVendor() == "SLICE")
                 {
                     sliceCredit += order.getPrice()
+                    sliceCredit -= order.getRefund()
+                    
                     sliceTotal += order.getPrice()
+                    sliceTotal -= order.getRefund()
+                    
                     sliceNum += 1
                 }
                 
@@ -470,6 +651,11 @@ class OrderStatsViewController: UIViewController {
         grubhubTotalDeliveryLabel.text = grubhubTotal.description
         grubhubNumDeliveryLabel.text = grubhubNum.description
         
+        instoreCashLabel.text = inStoreCash.description
+        instoreCreditLabel.text = inStoreCredit.description
+        instoreNumLabel.text = inStoreNum.description
+        instoreTotalLabel.text = inStoreTotal.description
+        
         seamlessCreditLabel.text = seamlessCredit.description
         seamlessTotalLabel.text = seamlessTotal.description
         seamlessNumLabel.text = seamlessNum.description
@@ -491,28 +677,22 @@ class OrderStatsViewController: UIViewController {
         
         //Driver Payout is equal to total tips and delivery fees MINUS any cash deliveries
         driverPay -= deliveryCash
-        driverPayout.text = driverPay.description
+
         
+        driverPayout.text = driverPay.description
         deliveryRefunds.text = delivRefunds.description
         pickupRefunds.text = pickRefunds.description
         
     } //end separateTotals()
     
-    func createAlert(title: String, message: String)
-    {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { (action) in alert.dismiss(animated: true, completion: nil)
-        }))
-        
-        self.present(alert, animated: true, completion: nil)
-        
-    }
-
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        displayPickup()
+        
+        
+        
         // Do any additional setup after loading the view.
     }
     
@@ -523,6 +703,425 @@ class OrderStatsViewController: UIViewController {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    func displayTotals()
+    {
+        //hide pickup header and show delivery
+        pickupHeader.isHidden = true
+        deliveryHeader.isHidden = true
+        
+        //hide delivery # and $ labels
+        dcomCashLabel.isHidden = true
+        dcomCreditLabel.isHidden = true
+        dcomTotalLabel.isHidden = true
+        dcomNumLabel.isHidden = true
+        
+        instoreCreditLabel.isHidden = true
+        instoreCashLabel.isHidden = true
+        instoreTotalLabel.isHidden = true
+        instoreNumLabel.isHidden = true
+        
+        eat24CashDeliveryLabel.isHidden = true
+        eat24CreditDeliveryLabel.isHidden = true
+        eat24TotalDeliveryLabel.isHidden = true
+        eat24NumDeliveryLabel.isHidden = true
+        
+        foodlerCashLabel.isHidden = true
+        foodlerCreditLabel.isHidden = true
+        foodlerTotalLabel.isHidden = true
+        foodlerNumLabel.isHidden = true
+        
+        grouponCreditLabel.isHidden = true
+        grouponTotalLabel.isHidden = true
+        grouponNumLabel.isHidden = true
+        
+        grubhubCashDeliveryLabel.isHidden = true
+        grubhubCreditDeliveryLabel.isHidden = true
+        grubhubTotalDeliveryLabel.isHidden = true
+        grubhubNumDeliveryLabel.isHidden = true
+        
+        seamlessCreditLabel.isHidden = true
+        seamlessTotalLabel.isHidden = true
+        seamlessNumLabel.isHidden = true
+        
+        sliceCreditLabel.isHidden = true
+        sliceTotalLabel.isHidden = true
+        sliceNumLabel.isHidden = true
+        
+        //hide pickup identifiers
+        amazonIdentifier.isHidden = true
+        caviarIdentifier.isHidden = true
+        doordashIdentifier.isHidden = true
+        eat24PickupIdentifier.isHidden = true
+        postmatesIdentifier.isHidden = true
+        uberIdentifier.isHidden = true
+        grubhubIdentifier.isHidden = true
+        
+        //hide delivery identifiers (excluding grubhub)
+        dcomIdentifier.isHidden = true
+        eat24DeliveryIdentifier.isHidden = true
+        foodlerIdentifier.isHidden = true
+        grouponIdentifier.isHidden = true
+        seamlessIdentifier.isHidden = true
+        sliceIdentifier.isHidden = true
+        instoreIdentifier.isHidden = true
+        
+        //hide pickup # and $ labels
+        amazonCreditLabel.isHidden = true              //future -- use function to set to true/false? -- try it
+        amazonCashLabel.isHidden = true
+        amazonTotalLabel.isHidden = true
+        amazonNumLabel.isHidden = true
+        
+        caviarCreditLabel.isHidden = true
+        caviarCashLabel.isHidden = true
+        caviarTotalLabel.isHidden = true
+        caviarNumLabel.isHidden = true
+        
+        doordashCreditLabel.isHidden = true
+        doordashNumLabel.isHidden = true
+        doordashCashLabel.isHidden = true
+        doordashTotalLabel.isHidden = true
+        
+        eat24CreditLabel.isHidden = true
+        eat24NumLabel.isHidden = true
+        eat24CashLabel.isHidden = true
+        eat24TotalLabel.isHidden = true
+        
+        grubhubCreditLabel.isHidden = true
+        grubhubNumLabel.isHidden = true
+        grubhubCashLabel.isHidden = true
+        grubhubTotalLabel.isHidden = true
+        
+        
+        postmatesCreditLabel.isHidden = true
+        postmatesNumLabel.isHidden = true
+        postmatesCashLabel.isHidden = true
+        postmatesTotalLabel.isHidden = true
+        
+        uberCreditLabel.isHidden = true
+        uberNumLabel.isHidden = true
+        uberCashLabel.isHidden = true
+        uberTotalLabel.isHidden = true
+        
+        //show column headers
+        cashIdentifier.isHidden = true
+        creditIdentifier.isHidden = true
+        totalMoneyIdentifier.isHidden = true
+        totalNumIdentifier.isHidden = true
+        
+        //show pickup identifiers and totals
+        totalPickupCreditIdentifier.isHidden = false
+        totalPickupNumIdentifier.isHidden = false
+        totalPickupRefundsIdentifier.isHidden = false
+        
+        totalPickupCredit.isHidden = false
+        totalPickupNum.isHidden = false
+        pickupRefunds.isHidden = false
+        
+        
+        //show delivery identifiers and totals
+        totalDeliveryIdentifier.isHidden = false
+        totalDeliveryNumIdentifier.isHidden = false
+        totalDeliveryCashIdentifier.isHidden = false
+        totalDeliveryCreditIdentifier.isHidden = false
+        totalDeliveryRefundsIdentifier.isHidden = false
+        
+        deliveryRefunds.isHidden = false
+        totalDeliveryCredit.isHidden = false
+        totalDeliveryCash.isHidden = false
+        totalDelivery.isHidden = false
+        totalDeliveryNum.isHidden = false
+        
+        //show driver identifiers and totals
+        totalTipsIdentifier.isHidden = false
+        totalTips.isHidden = false
+        
+        totalDeliveryFees.isHidden = false
+        totalDeliveryFeesIdentifier.isHidden = false
+        
+        driverPayout.isHidden = false
+        driverPayoutIdentifier.isHidden = false
+    }
+    
+    func displayDelivery()
+    {
+        //hide pickup header and show delivery
+        pickupHeader.isHidden = true
+        deliveryHeader.isHidden = false
+        
+        //hide pickup identifiers
+        amazonIdentifier.isHidden = true
+        caviarIdentifier.isHidden = true
+        doordashIdentifier.isHidden = true
+        eat24PickupIdentifier.isHidden = true
+        postmatesIdentifier.isHidden = true
+        uberIdentifier.isHidden = true
+        
+        //Identifier for both
+        grubhubIdentifier.isHidden = false
+        
+        //show delivery identifiers (excluding grubhub)
+        dcomIdentifier.isHidden = false
+        eat24DeliveryIdentifier.isHidden = false
+        foodlerIdentifier.isHidden = false
+        grouponIdentifier.isHidden = false
+        seamlessIdentifier.isHidden = false
+        sliceIdentifier.isHidden = false
+        instoreIdentifier.isHidden = false
+        
+        //hide pickup # and $ labels
+        amazonCreditLabel.isHidden = true              //future -- use function to set to true/false? -- try it
+        amazonCashLabel.isHidden = true
+        amazonTotalLabel.isHidden = true
+        amazonNumLabel.isHidden = true
+        
+        caviarCreditLabel.isHidden = true
+        caviarCashLabel.isHidden = true
+        caviarTotalLabel.isHidden = true
+        caviarNumLabel.isHidden = true
+        
+        doordashCreditLabel.isHidden = true
+        doordashNumLabel.isHidden = true
+        doordashCashLabel.isHidden = true
+        doordashTotalLabel.isHidden = true
+        
+        eat24CreditLabel.isHidden = true
+        eat24NumLabel.isHidden = true
+        eat24CashLabel.isHidden = true
+        eat24TotalLabel.isHidden = true
+        
+        grubhubCreditLabel.isHidden = true
+        grubhubNumLabel.isHidden = true
+        grubhubCashLabel.isHidden = true
+        grubhubTotalLabel.isHidden = true
+        
+        postmatesCreditLabel.isHidden = true
+        postmatesNumLabel.isHidden = true
+        postmatesCashLabel.isHidden = true
+        postmatesTotalLabel.isHidden = true
+        
+        uberCreditLabel.isHidden = true
+        uberNumLabel.isHidden = true
+        uberCashLabel.isHidden = true
+        uberTotalLabel.isHidden = true
+        
+        //show delivery # and $ labels
+        dcomCashLabel.isHidden = false
+        dcomCreditLabel.isHidden = false
+        dcomTotalLabel.isHidden = false
+        dcomNumLabel.isHidden = false
+        
+        eat24CashDeliveryLabel.isHidden = false
+        eat24CreditDeliveryLabel.isHidden = false
+        eat24TotalDeliveryLabel.isHidden = false
+        eat24NumDeliveryLabel.isHidden = false
+        
+        foodlerCashLabel.isHidden = false
+        foodlerCreditLabel.isHidden = false
+        foodlerTotalLabel.isHidden = false
+        foodlerNumLabel.isHidden = false
+        
+        grouponCreditLabel.isHidden = false
+        grouponTotalLabel.isHidden = false
+        grouponNumLabel.isHidden = false
+        
+        grubhubCashDeliveryLabel.isHidden = false
+        grubhubCreditDeliveryLabel.isHidden = false
+        grubhubTotalDeliveryLabel.isHidden = false
+        grubhubNumDeliveryLabel.isHidden = false
+        
+        instoreCreditLabel.isHidden = false
+        instoreCashLabel.isHidden = false
+        instoreTotalLabel.isHidden = false
+        instoreNumLabel.isHidden = false
+        
+        seamlessCreditLabel.isHidden = false
+        seamlessTotalLabel.isHidden = false
+        seamlessNumLabel.isHidden = false
+        
+        sliceCreditLabel.isHidden = false
+        sliceTotalLabel.isHidden = false
+        sliceNumLabel.isHidden = false
+        
+        //show column headers
+        cashIdentifier.isHidden = false
+        creditIdentifier.isHidden = false
+        totalMoneyIdentifier.isHidden = false
+        totalNumIdentifier.isHidden = false
+        
+        //hide pickup identifiers and totals
+        totalPickupCreditIdentifier.isHidden = true
+        totalPickupNumIdentifier.isHidden = true
+        totalPickupRefundsIdentifier.isHidden = true
+        
+        totalPickupCredit.isHidden = true
+        totalPickupNum.isHidden = true
+        pickupRefunds.isHidden = true
+        
+        
+        //show delivery identifiers and totals
+        totalDeliveryIdentifier.isHidden = false
+        totalDeliveryNumIdentifier.isHidden = false
+        totalDeliveryCashIdentifier.isHidden = false
+        totalDeliveryCreditIdentifier.isHidden = false
+        totalDeliveryRefundsIdentifier.isHidden = false
+        
+        deliveryRefunds.isHidden = false
+        totalDeliveryCredit.isHidden = false
+        totalDeliveryCash.isHidden = false
+        totalDelivery.isHidden = false
+        totalDeliveryNum.isHidden = false
+        
+        //hide driver identifiers and totals
+        totalTipsIdentifier.isHidden = false
+        totalTips.isHidden = false
+        
+        totalDeliveryFees.isHidden = false
+        totalDeliveryFeesIdentifier.isHidden = false
+        
+        driverPayout.isHidden = false
+        driverPayoutIdentifier.isHidden = false
+    }
+    
+    func displayPickup()
+    {
+        //show pickup header and hide delivery
+        pickupHeader.isHidden = false
+        deliveryHeader.isHidden = true
+        
+        //show pickup identifiers
+        amazonIdentifier.isHidden = false
+        caviarIdentifier.isHidden = false
+        doordashIdentifier.isHidden = false
+        eat24PickupIdentifier.isHidden = false
+        postmatesIdentifier.isHidden = false
+        uberIdentifier.isHidden = false
+        
+        //Identifier for both
+        grubhubIdentifier.isHidden = false
+        
+        //hide delivery identifiers (excluding grubhub)
+        dcomIdentifier.isHidden = true
+        eat24DeliveryIdentifier.isHidden = true
+        foodlerIdentifier.isHidden = true
+        grouponIdentifier.isHidden = true
+        seamlessIdentifier.isHidden = true
+        sliceIdentifier.isHidden = true
+        instoreIdentifier.isHidden = true
+        
+        //show pickup # and $ labels
+        amazonCreditLabel.isHidden = false              //future -- use function to set to true/false? -- try it
+        amazonCashLabel.isHidden = false
+        amazonTotalLabel.isHidden = false
+        amazonNumLabel.isHidden = false
+        
+        caviarCreditLabel.isHidden = false
+        caviarCashLabel.isHidden = false
+        caviarTotalLabel.isHidden = false
+        caviarNumLabel.isHidden = false
+        
+        doordashCreditLabel.isHidden = false
+        doordashNumLabel.isHidden = false
+        doordashCashLabel.isHidden = false
+        doordashTotalLabel.isHidden = false
+        
+        eat24CreditLabel.isHidden = false
+        eat24NumLabel.isHidden = false
+        eat24CashLabel.isHidden = false
+        eat24TotalLabel.isHidden = false
+        
+        grubhubCreditLabel.isHidden = false
+        grubhubNumLabel.isHidden = false
+        grubhubCashLabel.isHidden = false
+        grubhubTotalLabel.isHidden = false
+        
+        postmatesCreditLabel.isHidden = false
+        postmatesNumLabel.isHidden = false
+        postmatesCashLabel.isHidden = false
+        postmatesTotalLabel.isHidden = false
+        
+        uberCreditLabel.isHidden = false
+        uberNumLabel.isHidden = false
+        uberCashLabel.isHidden = false
+        uberTotalLabel.isHidden = false
+        
+        //hide delivery # and $ labels
+        dcomCashLabel.isHidden = true
+        dcomCreditLabel.isHidden = true
+        dcomTotalLabel.isHidden = true
+        dcomNumLabel.isHidden = true
+        
+        eat24CashDeliveryLabel.isHidden = true
+        eat24CreditDeliveryLabel.isHidden = true
+        eat24TotalDeliveryLabel.isHidden = true
+        eat24NumDeliveryLabel.isHidden = true
+        
+        foodlerCashLabel.isHidden = true
+        foodlerCreditLabel.isHidden = true
+        foodlerTotalLabel.isHidden = true
+        foodlerNumLabel.isHidden = true
+        
+        grouponCreditLabel.isHidden = true
+        grouponTotalLabel.isHidden = true
+        grouponNumLabel.isHidden = true
+        
+        instoreCreditLabel.isHidden = true
+        instoreCashLabel.isHidden = true
+        instoreTotalLabel.isHidden = true
+        instoreNumLabel.isHidden = true
+        
+        grubhubCashDeliveryLabel.isHidden = true
+        grubhubCreditDeliveryLabel.isHidden = true
+        grubhubTotalDeliveryLabel.isHidden = true
+        grubhubNumDeliveryLabel.isHidden = true
+        
+        seamlessCreditLabel.isHidden = true
+        seamlessTotalLabel.isHidden = true
+        seamlessNumLabel.isHidden = true
+        
+        sliceCreditLabel.isHidden = true
+        sliceTotalLabel.isHidden = true
+        sliceNumLabel.isHidden = true
+        
+        //show column headers
+        cashIdentifier.isHidden = false
+        creditIdentifier.isHidden = false
+        totalMoneyIdentifier.isHidden = false
+        totalNumIdentifier.isHidden = false
+        
+        //show pickup identifiers and totals
+        totalPickupCreditIdentifier.isHidden = false
+        totalPickupNumIdentifier.isHidden = false
+        totalPickupRefundsIdentifier.isHidden = false
+        
+        totalPickupCredit.isHidden = false
+        totalPickupNum.isHidden = false
+        pickupRefunds.isHidden = false
+        
+        
+        //hide delivery identifiers and totals
+        totalDeliveryIdentifier.isHidden = true
+        totalDeliveryNumIdentifier.isHidden = true
+        totalDeliveryCashIdentifier.isHidden = true
+        totalDeliveryCreditIdentifier.isHidden = true
+        totalDeliveryRefundsIdentifier.isHidden = true
+        
+        deliveryRefunds.isHidden = true
+        totalDeliveryCredit.isHidden = true
+        totalDeliveryCash.isHidden = true
+        totalDelivery.isHidden = true
+        totalDeliveryNum.isHidden = true
+        
+        //hide driver identifiers and totals
+        totalTipsIdentifier.isHidden = true
+        totalTips.isHidden = true
+        
+        totalDeliveryFees.isHidden = true
+        totalDeliveryFeesIdentifier.isHidden = true
+        
+        driverPayout.isHidden = true
+        driverPayoutIdentifier.isHidden = true
     }
     
 
