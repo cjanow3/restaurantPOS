@@ -57,6 +57,8 @@ class Cell_ViewController: UIViewController {
         createSimpleAlert(title: "NOT READY", message: "This doesn't do anything ( yet ;) )")
     }
     
+    
+    //Alert function
     func createSimpleAlert(title: String, message: String) {
         
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
@@ -68,6 +70,7 @@ class Cell_ViewController: UIViewController {
         
     }
     
+    //Prepare each piece of data to be edited in next view
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if (segue.identifier == "editorderseg")
         {
@@ -137,6 +140,7 @@ class Cell_ViewController: UIViewController {
         hideButton()
     }
     
+    //load each label with proper data before view appears
     override func viewWillAppear(_ animated: Bool) {
         
         if let cName = cName, let cVendor = cVendor, let cAddress = cAddress, let cCashCredit = cCashCredit, let cPickupDelivery = cPickupDelivery, let cTip = cTip, let cDeliveryFee = cDeliveryFee, let cPrice = cPrice, let cRefund = cRefund {

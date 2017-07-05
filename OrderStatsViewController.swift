@@ -326,11 +326,13 @@ class OrderStatsViewController: UIViewController {
             //Case 1: Order is a pickup
             if (order.getPickup())
             {
+                //total up refunds and pickupCredit, subtract refunds from total pickupCredit
                 pickRefunds += order.getRefund()
                 pickupCredit += order.getPrice()
                 pickupCredit -= order.getRefund()
                 pickupNum += 1
                 
+                //determine which vendor it is, then get more in depth totals
                 if (order.getVendor() == "Amazon")
                 {
                     if (order.getCash())
@@ -453,7 +455,6 @@ class OrderStatsViewController: UIViewController {
 
                 
                 //we do not want in store totals to be added b/c they are considered a sale made by us
-                
                 if (order.getVendor() != "In Store")
                 {
                     //increase # deliveries for each delivery order, add to total price
@@ -461,19 +462,19 @@ class OrderStatsViewController: UIViewController {
                     
                     deliveryTotal += order.getPrice()
                     deliveryTotal -= order.getRefund()
+                    
+                    //total up $ cash and $ credit
+                    if (order.getCash())
+                    {
+                        deliveryCash += order.getPrice()
+                        deliveryCash -= order.getRefund()
+                    }else{
+                        deliveryCredit += order.getPrice()
+                        deliveryCredit -= order.getRefund()
+                    }
+                    
                 }
-                
-                
-                if (order.getCash())
-                {
-                    deliveryCash += order.getPrice()
-                    deliveryCash -= order.getRefund()
-                }else{
-                    deliveryCredit += order.getPrice()
-                    deliveryCredit -= order.getRefund()
-                }
-        
-                
+            
                 if (order.getVendor() == "Delivery.com")
                 {
                     if (order.getCash())
@@ -589,6 +590,9 @@ class OrderStatsViewController: UIViewController {
 
             
         } //end for each loop
+        
+        
+        //Update each vendor label before we display
         
         //Pickup
         amazonCreditLabel.text = amazonCredit.description

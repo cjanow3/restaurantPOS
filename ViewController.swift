@@ -14,9 +14,6 @@ var isCash = true
 
 class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate {
     
-    //MARK: Image view for Big G's Logo
-    
-    
     
     //MARK: Text fields for customer input
     
@@ -30,7 +27,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     
     //MARK: Picker View for vendor -- includes list and functions needed for picker view
     let pickupVendors =   ["Amazon", "Caviar", "Doordash", "Eat24", "Grubhub", "Postmates", "Uber"]
-    let deliveryVendors = ["Delivery.com", "Eat24", "Foodler", "Groupon", "Grubhub", "Seamless", "SLICE"]
+    let deliveryVendors = ["Delivery.com", "Eat24", "Foodler", "Groupon", "Grubhub","In Store", "Seamless", "SLICE"]
     
     @IBOutlet weak var pickupVendorPicker: UIPickerView!
     @IBOutlet weak var deliveryVendorPicker: UIPickerView!
@@ -178,27 +175,42 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         switch pickupdeliverySeg.selectedSegmentIndex {
             
         case 0:
-            isPickup = true;
-            tf_CustomerAddr.isUserInteractionEnabled = false
-            tf_DeliveryFee.isUserInteractionEnabled = false
-            tf_CustomerAddr.text = "Pickup"
-            tf_DeliveryFee.text = "0"
-            pickupVendorPicker.isHidden = false
-            deliveryVendorPicker.isHidden = true
+            displayForPickup()
             
         case 1:
-            isPickup = false;
-            tf_CustomerAddr.isUserInteractionEnabled = true
-            tf_DeliveryFee.isUserInteractionEnabled = true
-            tf_CustomerAddr.text = ""
-            tf_DeliveryFee.text = "0"
-            pickupVendorPicker.isHidden = true
-            deliveryVendorPicker.isHidden = false
+            displayForDelivery()
             
             
         default:
             break;
         }
+    }
+    
+    func displayForPickup()
+    {
+        isPickup = true;
+        tf_CustomerAddr.isUserInteractionEnabled = false
+        tf_DeliveryFee.isUserInteractionEnabled = false
+        tf_CustomerAddr.text = "Pickup"
+        tf_DeliveryFee.text = "0"
+        pickupVendorPicker.isHidden = false
+        deliveryVendorPicker.isHidden = true
+    }
+    
+    func displayForDelivery()
+    {
+        isPickup = false;
+        tf_CustomerAddr.isUserInteractionEnabled = true
+        tf_DeliveryFee.isUserInteractionEnabled = true
+        tf_CustomerAddr.text = ""
+        tf_DeliveryFee.text = "0"
+        pickupVendorPicker.isHidden = true
+        deliveryVendorPicker.isHidden = false
+    }
+    
+    func changeIsCash(cash:Bool)
+    {
+        isCash = cash
     }
     
     //cash/credit
@@ -207,11 +219,10 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         switch cashcreditSeg.selectedSegmentIndex {
             
         case 0:
-            isCash = true
-            //print("cash")
+            changeIsCash(cash: true)
         case 1:
-            isCash = false
-            //print("credit")
+            changeIsCash(cash: false)
+
         default:
             break
         }

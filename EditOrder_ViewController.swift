@@ -14,6 +14,7 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     let context = restaurantController.getContext()
     
+    //seg control to choose which field to edit
     @IBOutlet weak var editSegControl: UISegmentedControl!
     
     //labels with respective text fields
@@ -53,13 +54,13 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
     @IBOutlet weak var vendorPicker: UIPickerView!
     
 
-    
+    //arrays for some fields to prevent spelling errors
     let cashCredit = ["Cash", "Credit"]
     let pickupDelivery = ["Pickup", "Delivery"]
     let vendors = ["Amazon", "Caviar", "Doordash", "Eat24", "Grubhub", "Postmates", "Uber" , "Delivery.com", "Eat24", "Foodler", "Groupon", "Grubhub", "Seamless", "SLICE"]
     
 
-    
+    //fucntions to determine what pickerview is used
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 1
     }
@@ -129,6 +130,7 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
         }
     }
     
+    //cell variables used to represent each data
     var cName:String?
     var cVendor:String?
     var cAddress:String?
@@ -142,325 +144,40 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
     
     var cPickup:Bool?
     var cCash:Bool?
-
+    
+    
+    
     @IBAction func changeEdit(_ sender: Any) {
         
         switch editSegControl.selectedSegmentIndex
         {
         case 0:
-            nameLabel.isHidden = false
-            nameTF.isHidden = false
+            displayName()
             
-            vendorLabel.isHidden = true
-            vendorTF.isHidden = true
-            
-            addressLabel.isHidden = true
-            addressTF.isHidden = true
-            
-            tipLabel.isHidden = true
-            tipTF.isHidden = true
-            
-            priceLabel.isHidden = true
-            priceTF.isHidden = true
-            
-            deliveryFeeLabel.isHidden = true
-            deliveryFeeTF.isHidden = true
-            
-            refundLabel.isHidden = true
-            refundTF.isHidden = true
-            
-            cashCreditLabel.isHidden = true
-            cashCreditTF.isHidden = true
-            
-            pickupDeliveryLabel.isHidden = true
-            pickupDeliveryTF.isHidden = true
-            
-            cashCreditPicker.isHidden = true
-            pickupDeliveryPicker.isHidden = true
-            vendorPicker.isHidden = true
-            
-            currentEditLabel.text = cName
-            
-            
-
         case 1:
-            vendorLabel.isHidden = false
-            vendorTF.isHidden = false
-            
-            nameLabel.isHidden = true
-            nameTF.isHidden = true
-            
-            addressLabel.isHidden = true
-            addressTF.isHidden = true
-            
-            tipLabel.isHidden = true
-            tipTF.isHidden = true
-            
-            priceLabel.isHidden = true
-            priceTF.isHidden = true
-            
-            deliveryFeeLabel.isHidden = true
-            deliveryFeeTF.isHidden = true
-            
-            refundLabel.isHidden = true
-            refundTF.isHidden = true
-            
-            cashCreditLabel.isHidden = true
-            cashCreditTF.isHidden = true
-            
-            pickupDeliveryLabel.isHidden = true
-            pickupDeliveryTF.isHidden = true
-            
-            cashCreditPicker.isHidden = true
-            pickupDeliveryPicker.isHidden = true
-            vendorPicker.isHidden = false
+            displayVendor()
 
-            currentEditLabel.text = cVendor
-
-            
         case 2:
-            vendorLabel.isHidden = true
-            vendorTF.isHidden = true
-            
-            nameLabel.isHidden = true
-            nameTF.isHidden = true
-            
-            addressLabel.isHidden = false
-            addressTF.isHidden = false
-            
-            tipLabel.isHidden = true
-            tipTF.isHidden = true
-            
-            priceLabel.isHidden = true
-            priceTF.isHidden = true
-            
-            deliveryFeeLabel.isHidden = true
-            deliveryFeeTF.isHidden = true
-            
-            refundLabel.isHidden = true
-            refundTF.isHidden = true
-            
-            cashCreditLabel.isHidden = true
-            cashCreditTF.isHidden = true
-            
-            pickupDeliveryLabel.isHidden = true
-            pickupDeliveryTF.isHidden = true
-            
-            cashCreditPicker.isHidden = true
-            pickupDeliveryPicker.isHidden = true
-            vendorPicker.isHidden = true
-
-            currentEditLabel.text = cAddress
+            displayAddress()
             
         case 3:
-            vendorLabel.isHidden = true
-            vendorTF.isHidden = true
+            displayCashCredit()
             
-            nameLabel.isHidden = true
-            nameTF.isHidden = true
-            
-            addressLabel.isHidden = true
-            addressTF.isHidden = true
-            
-            tipLabel.isHidden = true
-            tipTF.isHidden = true
-            
-            priceLabel.isHidden = true
-            priceTF.isHidden = true
-            
-            deliveryFeeLabel.isHidden = true
-            deliveryFeeTF.isHidden = true
-            
-            refundLabel.isHidden = true
-            refundTF.isHidden = true
-            
-            cashCreditLabel.isHidden = false
-            cashCreditTF.isHidden = false
-            
-            pickupDeliveryLabel.isHidden = true
-            pickupDeliveryTF.isHidden = true
-            
-            cashCreditPicker.isHidden = false
-            pickupDeliveryPicker.isHidden = true
-            vendorPicker.isHidden = true
-
-            
-            currentEditLabel.text = cCashCredit
-
         case 4:
-            vendorLabel.isHidden = true
-            vendorTF.isHidden = true
-            
-            nameLabel.isHidden = true
-            nameTF.isHidden = true
-            
-            addressLabel.isHidden = true
-            addressTF.isHidden = true
-            
-            tipLabel.isHidden = true
-            tipTF.isHidden = true
-            
-            priceLabel.isHidden = true
-            priceTF.isHidden = true
-            
-            deliveryFeeLabel.isHidden = true
-            deliveryFeeTF.isHidden = true
-            
-            refundLabel.isHidden = true
-            refundTF.isHidden = true
-            
-            cashCreditLabel.isHidden = true
-            cashCreditTF.isHidden = true
-            
-            pickupDeliveryLabel.isHidden = false
-            pickupDeliveryTF.isHidden = false
-            
-            cashCreditPicker.isHidden = true
-            pickupDeliveryPicker.isHidden = false
-            vendorPicker.isHidden = true
-
-            currentEditLabel.text = cPickupDelivery
+            displayPickupDelivery()
             
         case 5:
-            vendorLabel.isHidden = true
-            vendorTF.isHidden = true
-        
-            nameLabel.isHidden = true
-            nameTF.isHidden = true
-            
-            addressLabel.isHidden = true
-            addressTF.isHidden = true
-            
-            tipLabel.isHidden = false
-            tipTF.isHidden = false
-            
-            priceLabel.isHidden = true
-            priceTF.isHidden = true
-            
-            deliveryFeeLabel.isHidden = true
-            deliveryFeeTF.isHidden = true
-            
-            refundLabel.isHidden = true
-            refundTF.isHidden = true
-            
-            cashCreditLabel.isHidden = true
-            cashCreditTF.isHidden = true
-            
-            pickupDeliveryLabel.isHidden = true
-            pickupDeliveryTF.isHidden = true
-            
-            cashCreditPicker.isHidden = true
-            pickupDeliveryPicker.isHidden = true
-            vendorPicker.isHidden = true
-
-            currentEditLabel.text = cTip?.description
-
+            displayTip()
             
         case 6:
-            vendorLabel.isHidden = true
-            vendorTF.isHidden = true
-            
-            nameLabel.isHidden = true
-            nameTF.isHidden = true
-            
-            addressLabel.isHidden = true
-            addressTF.isHidden = true
-            
-            tipLabel.isHidden = true
-            tipTF.isHidden = true
-            
-            priceLabel.isHidden = false
-            priceTF.isHidden = false
-            
-            deliveryFeeLabel.isHidden = true
-            deliveryFeeTF.isHidden = true
-            
-            refundLabel.isHidden = true
-            refundTF.isHidden = true
-            
-            cashCreditLabel.isHidden = true
-            cashCreditTF.isHidden = true
-            
-            pickupDeliveryLabel.isHidden = true
-            pickupDeliveryTF.isHidden = true
-            
-            cashCreditPicker.isHidden = true
-            pickupDeliveryPicker.isHidden = true
-            vendorPicker.isHidden = true
-
-            currentEditLabel.text = cPrice?.description
+            displayPrice()
             
         case 7:
-            vendorLabel.isHidden = true
-            vendorTF.isHidden = true
-            
-            nameLabel.isHidden = true
-            nameTF.isHidden = true
-            
-            addressLabel.isHidden = true
-            addressTF.isHidden = true
-            
-            tipLabel.isHidden = true
-            tipTF.isHidden = true
-            
-            priceLabel.isHidden = true
-            priceTF.isHidden = true
-            
-            deliveryFeeLabel.isHidden = false
-            deliveryFeeTF.isHidden = false
-            
-            cashCreditLabel.isHidden = true
-            cashCreditTF.isHidden = true
-            
-            pickupDeliveryLabel.isHidden = true
-            pickupDeliveryTF.isHidden = true
-            
-            refundLabel.isHidden = true
-            refundTF.isHidden = true
-            
-            cashCreditPicker.isHidden = true
-            pickupDeliveryPicker.isHidden = true
-            vendorPicker.isHidden = true
-
-            currentEditLabel.text = cDeliveryFee?.description
+            displayDeliveryFee()
 
         case 8:
-            vendorLabel.isHidden = true
-            vendorTF.isHidden = true
-            
-            nameLabel.isHidden = true
-            nameTF.isHidden = true
-            
-            addressLabel.isHidden = true
-            addressTF.isHidden = true
-            
-            tipLabel.isHidden = true
-            tipTF.isHidden = true
-            
-            priceLabel.isHidden = true
-            priceTF.isHidden = true
-            
-            deliveryFeeLabel.isHidden = true
-            deliveryFeeTF.isHidden = true
-            
-            refundLabel.isHidden = false
-            refundTF.isHidden = false
-        
-            cashCreditLabel.isHidden = true
-            cashCreditTF.isHidden = true
-            
-            pickupDeliveryLabel.isHidden = true
-            pickupDeliveryTF.isHidden = true
-            
-            
-            cashCreditPicker.isHidden = true
-            pickupDeliveryPicker.isHidden = true
-            vendorPicker.isHidden = true
-            
-            currentEditLabel.text = cRefund?.description
+            displayRefund()
 
-
-            
         default:
             break
         }
@@ -473,9 +190,10 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
     //MARK: Save button
     @IBAction func saveEditOrder(_ sender: Any) {
         
+        //get request for order entity
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Order")
         
-        
+        //determine which index is being selected -- then update the field & create alert specifiying change
         if (editSegControl.selectedSegmentIndex == 0)
         {
             if nameTF.text != ""
@@ -510,8 +228,6 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
                 createSimpleAlert(title: "Error", message: "Attemping to edit order without any entry")
             }
         }
-        
-            //Need to integrate picker view && disable text box
             
         else if (editSegControl.selectedSegmentIndex == 1)
         {
@@ -584,7 +300,6 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
             }
         }
         
-            //Also needs picker view -- disable text box
         else if (editSegControl.selectedSegmentIndex == 3)
         {
             if cashCreditTF.text != ""
@@ -632,7 +347,6 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
             }
         }
         
-            //needs picker
         else if (editSegControl.selectedSegmentIndex == 4)
         {
             
@@ -833,14 +547,22 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
 
     
     
-    override func viewDidLoad() {
+    override func viewDidLoad()
+    {
         super.viewDidLoad()
 
-        vendorLabel.isHidden = true
-        vendorTF.isHidden = true
-        
+        displayName()
+    }
+    
+    
+    //functions used to display respective labels and TF
+    func displayName()
+    {
         nameLabel.isHidden = false
         nameTF.isHidden = false
+        
+        vendorLabel.isHidden = true
+        vendorTF.isHidden = true
         
         addressLabel.isHidden = true
         addressTF.isHidden = true
@@ -860,7 +582,6 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
         cashCreditLabel.isHidden = true
         cashCreditTF.isHidden = true
         
- 
         pickupDeliveryLabel.isHidden = true
         pickupDeliveryTF.isHidden = true
         
@@ -868,15 +589,304 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
         pickupDeliveryPicker.isHidden = true
         vendorPicker.isHidden = true
         
-        cashCreditTF.isUserInteractionEnabled = false
-        pickupDeliveryTF.isUserInteractionEnabled = false
-        vendorTF.isUserInteractionEnabled = false
-
         currentEditLabel.text = cName
     }
     
-    //MARK: Alert function
+    func displayVendor()
+    {
+        vendorLabel.isHidden = false
+        vendorTF.isHidden = false
+        
+        nameLabel.isHidden = true
+        nameTF.isHidden = true
+        
+        addressLabel.isHidden = true
+        addressTF.isHidden = true
+        
+        tipLabel.isHidden = true
+        tipTF.isHidden = true
+        
+        priceLabel.isHidden = true
+        priceTF.isHidden = true
+        
+        deliveryFeeLabel.isHidden = true
+        deliveryFeeTF.isHidden = true
+        
+        refundLabel.isHidden = true
+        refundTF.isHidden = true
+        
+        cashCreditLabel.isHidden = true
+        cashCreditTF.isHidden = true
+        
+        pickupDeliveryLabel.isHidden = true
+        pickupDeliveryTF.isHidden = true
+        
+        cashCreditPicker.isHidden = true
+        pickupDeliveryPicker.isHidden = true
+        vendorPicker.isHidden = false
+        
+        currentEditLabel.text = cVendor
+        
+    }
     
+    func displayAddress()
+    {
+        vendorLabel.isHidden = true
+        vendorTF.isHidden = true
+        
+        nameLabel.isHidden = true
+        nameTF.isHidden = true
+        
+        addressLabel.isHidden = false
+        addressTF.isHidden = false
+        
+        tipLabel.isHidden = true
+        tipTF.isHidden = true
+        
+        priceLabel.isHidden = true
+        priceTF.isHidden = true
+        
+        deliveryFeeLabel.isHidden = true
+        deliveryFeeTF.isHidden = true
+        
+        refundLabel.isHidden = true
+        refundTF.isHidden = true
+        
+        cashCreditLabel.isHidden = true
+        cashCreditTF.isHidden = true
+        
+        pickupDeliveryLabel.isHidden = true
+        pickupDeliveryTF.isHidden = true
+        
+        cashCreditPicker.isHidden = true
+        pickupDeliveryPicker.isHidden = true
+        vendorPicker.isHidden = true
+        
+        currentEditLabel.text = cAddress
+    }
+    
+    func displayCashCredit()
+    {
+        vendorLabel.isHidden = true
+        vendorTF.isHidden = true
+        
+        nameLabel.isHidden = true
+        nameTF.isHidden = true
+        
+        addressLabel.isHidden = true
+        addressTF.isHidden = true
+        
+        tipLabel.isHidden = true
+        tipTF.isHidden = true
+        
+        priceLabel.isHidden = true
+        priceTF.isHidden = true
+        
+        deliveryFeeLabel.isHidden = true
+        deliveryFeeTF.isHidden = true
+        
+        refundLabel.isHidden = true
+        refundTF.isHidden = true
+        
+        cashCreditLabel.isHidden = false
+        cashCreditTF.isHidden = false
+        
+        pickupDeliveryLabel.isHidden = true
+        pickupDeliveryTF.isHidden = true
+        
+        cashCreditPicker.isHidden = false
+        pickupDeliveryPicker.isHidden = true
+        vendorPicker.isHidden = true
+        
+        
+        currentEditLabel.text = cCashCredit
+        
+    }
+    
+    func displayPickupDelivery()
+    {
+        vendorLabel.isHidden = true
+        vendorTF.isHidden = true
+        
+        nameLabel.isHidden = true
+        nameTF.isHidden = true
+        
+        addressLabel.isHidden = true
+        addressTF.isHidden = true
+        
+        tipLabel.isHidden = true
+        tipTF.isHidden = true
+        
+        priceLabel.isHidden = true
+        priceTF.isHidden = true
+        
+        deliveryFeeLabel.isHidden = true
+        deliveryFeeTF.isHidden = true
+        
+        refundLabel.isHidden = true
+        refundTF.isHidden = true
+        
+        cashCreditLabel.isHidden = true
+        cashCreditTF.isHidden = true
+        
+        pickupDeliveryLabel.isHidden = false
+        pickupDeliveryTF.isHidden = false
+        
+        cashCreditPicker.isHidden = true
+        pickupDeliveryPicker.isHidden = false
+        vendorPicker.isHidden = true
+        
+        currentEditLabel.text = cPickupDelivery
+        
+    }
+    
+    
+    func displayTip()
+    {
+        vendorLabel.isHidden = true
+        vendorTF.isHidden = true
+        
+        nameLabel.isHidden = true
+        nameTF.isHidden = true
+        
+        addressLabel.isHidden = true
+        addressTF.isHidden = true
+        
+        tipLabel.isHidden = false
+        tipTF.isHidden = false
+        
+        priceLabel.isHidden = true
+        priceTF.isHidden = true
+        
+        deliveryFeeLabel.isHidden = true
+        deliveryFeeTF.isHidden = true
+        
+        refundLabel.isHidden = true
+        refundTF.isHidden = true
+        
+        cashCreditLabel.isHidden = true
+        cashCreditTF.isHidden = true
+        
+        pickupDeliveryLabel.isHidden = true
+        pickupDeliveryTF.isHidden = true
+        
+        cashCreditPicker.isHidden = true
+        pickupDeliveryPicker.isHidden = true
+        vendorPicker.isHidden = true
+        
+        currentEditLabel.text = cTip?.description
+    }
+    
+    func displayPrice()
+    {
+        vendorLabel.isHidden = true
+        vendorTF.isHidden = true
+        
+        nameLabel.isHidden = true
+        nameTF.isHidden = true
+        
+        addressLabel.isHidden = true
+        addressTF.isHidden = true
+        
+        tipLabel.isHidden = true
+        tipTF.isHidden = true
+        
+        priceLabel.isHidden = false
+        priceTF.isHidden = false
+        
+        deliveryFeeLabel.isHidden = true
+        deliveryFeeTF.isHidden = true
+        
+        refundLabel.isHidden = true
+        refundTF.isHidden = true
+        
+        cashCreditLabel.isHidden = true
+        cashCreditTF.isHidden = true
+        
+        pickupDeliveryLabel.isHidden = true
+        pickupDeliveryTF.isHidden = true
+        
+        cashCreditPicker.isHidden = true
+        pickupDeliveryPicker.isHidden = true
+        vendorPicker.isHidden = true
+        
+        currentEditLabel.text = cPrice?.description
+    }
+    
+    func displayDeliveryFee()
+    {
+        vendorLabel.isHidden = true
+        vendorTF.isHidden = true
+        
+        nameLabel.isHidden = true
+        nameTF.isHidden = true
+        
+        addressLabel.isHidden = true
+        addressTF.isHidden = true
+        
+        tipLabel.isHidden = true
+        tipTF.isHidden = true
+        
+        priceLabel.isHidden = true
+        priceTF.isHidden = true
+        
+        deliveryFeeLabel.isHidden = false
+        deliveryFeeTF.isHidden = false
+        
+        cashCreditLabel.isHidden = true
+        cashCreditTF.isHidden = true
+        
+        pickupDeliveryLabel.isHidden = true
+        pickupDeliveryTF.isHidden = true
+        
+        refundLabel.isHidden = true
+        refundTF.isHidden = true
+        
+        cashCreditPicker.isHidden = true
+        pickupDeliveryPicker.isHidden = true
+        vendorPicker.isHidden = true
+        
+        currentEditLabel.text = cDeliveryFee?.description
+    }
+    
+    func displayRefund()
+    {
+        vendorLabel.isHidden = true
+        vendorTF.isHidden = true
+        
+        nameLabel.isHidden = true
+        nameTF.isHidden = true
+        
+        addressLabel.isHidden = true
+        addressTF.isHidden = true
+        
+        tipLabel.isHidden = true
+        tipTF.isHidden = true
+        
+        priceLabel.isHidden = true
+        priceTF.isHidden = true
+        
+        deliveryFeeLabel.isHidden = true
+        deliveryFeeTF.isHidden = true
+        
+        refundLabel.isHidden = false
+        refundTF.isHidden = false
+        
+        cashCreditLabel.isHidden = true
+        cashCreditTF.isHidden = true
+        
+        pickupDeliveryLabel.isHidden = true
+        pickupDeliveryTF.isHidden = true
+        
+        
+        cashCreditPicker.isHidden = true
+        pickupDeliveryPicker.isHidden = true
+        vendorPicker.isHidden = true
+        
+        currentEditLabel.text = cRefund?.description
+    }
+    
+    //MARK: Alert function
     func createSimpleAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         let ok = UIAlertAction(title: "OK", style: .default, handler: nil)

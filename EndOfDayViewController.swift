@@ -12,15 +12,14 @@ import MessageUI
 class EndOfDayViewController: UIViewController, MFMailComposeViewControllerDelegate {
     
     
-    //MARK: Reset day
-
+    //MARK: Reset day -- prompts user with password before clearing out core data
     @IBAction func resetDay(_ sender: Any)
     {
         createAlert_ResetDay(title: "Enter Password", message: "")
     }
     
     
-    
+    //MARK: Email -- takes current 
     @IBAction func emailCurrentData(_ sender: Any)
     {
         //fetch data that will be emailed
@@ -88,6 +87,11 @@ class EndOfDayViewController: UIViewController, MFMailComposeViewControllerDeleg
         var dcomTotal = 0.0
         var dcomNum = 0
         
+        var inStoreCash = 0.0
+        var inStoreCredit = 0.0
+        var inStoreTotal = 0.0
+        var inStoreNum = 0
+        
         var eat24DeliveryCash = 0.0
         var eat24DeliveryCredit = 0.0
         var eat24DeliveryTotal = 0.0
@@ -132,6 +136,7 @@ class EndOfDayViewController: UIViewController, MFMailComposeViewControllerDeleg
         var delivRefunds = 0.0
         var pickRefunds = 0.00
         
+        //separate totals
         for order in orders
         {
             
@@ -297,6 +302,22 @@ class EndOfDayViewController: UIViewController, MFMailComposeViewControllerDeleg
                     dcomTotal -= order.getRefund()
                     dcomNum += 1
                 }
+                    
+                else if (order.getVendor() == "In Store")
+                {
+                    if (order.getCash())
+                    {
+                        inStoreCash += order.getPrice()
+                        inStoreCash -= order.getRefund()
+                    } else {
+                        inStoreCredit += order.getPrice()
+                        inStoreCredit -= order.getRefund()
+                    }
+                    
+                    inStoreTotal += order.getPrice()
+                    inStoreTotal -= order.getRefund()
+                    inStoreNum += 1
+                }
                 else if (order.getVendor() == "Eat24")
                 {
                     if (order.getCash())
@@ -309,6 +330,7 @@ class EndOfDayViewController: UIViewController, MFMailComposeViewControllerDeleg
                     }
                     
                     eat24DeliveryTotal += order.getPrice()
+                    eat24DeliveryTotal -= order.getRefund()
                     eat24DeliveryNum += 1
                 }
                 else if (order.getVendor() == "Foodler")
@@ -350,7 +372,6 @@ class EndOfDayViewController: UIViewController, MFMailComposeViewControllerDeleg
                     
                     grubhubTotal += order.getPrice()
                     grubhubTotal -= order.getRefund()
-                    
                     grubhubNum += 1
                 }
                 else if (order.getVendor() == "Seamless")
@@ -381,20 +402,48 @@ class EndOfDayViewController: UIViewController, MFMailComposeViewControllerDeleg
             
         } //end for each loop
         
-        
-        //need to correctly organize variables in string to match column headers -- then append to string
-
+        //create text for csv file -- Pickup then Delivery
         
         var csvText = "Pickups\n"
         
-        csvText.append("Amazon Credit,Amazon Cash,Amazon Total,Caviar Credit,Caviar Cash,Caviar Total,Doordash Credit, Doordash Cash, Doordash Total,Eat24 Credit,Eat24 Cash,Eat24 Total,Grubhub Cash,Grubhub Credit,Grubhub Total,Postmates Credit,Postmates Cash,Postmates Total,Uber Cash,Uber Credit,Uber Total\n")
+        csvText.append("Amazon Credit,Amazon Cash,Amazon Total,Caviar Credit,Caviar Cash,Caviar Total,Doordash Credit,Doordash Cash,Doordash Total,Eat24 Credit,Eat24 Cash,Eat24 Total,Grubhub Credit,Grubhub Cash,Grubhub Total,Postmates Credit,Postmates Cash,Postmates Total,Uber Credit,Uber Cash,Uber Total\n")
 
-        let newLine = "\(amazonCredit),\(amazonCash),\(amazonTotal),\(caviarCredit),\(caviarCash),\(caviarTotal),\(doordashCredit),\(doordashCash),\(doordashTotal),\(eat24PickupCredit),\(eat24PickupCash),\(eat24PickupTotal),\(grubhubPickupCredit),\(grubhubPickupCash),\(grubhubPickupTotal),\(postmatesCredit),\(postmatesCash),\(postmatesTotal),\(uberCredit),\(uberCash),\(uberTotal)\n"
+        let pickupLine = "\(amazonCredit),\(amazonCash),\(amazonTotal),\(caviarCredit),\(caviarCash),\(caviarTotal),\(doordashCredit),\(doordashCash),\(doordashTotal),\(eat24PickupCredit),\(eat24PickupCash),\(eat24PickupTotal),\(grubhubPickupCredit),\(grubhubPickupCash),\(grubhubPickupTotal),\(postmatesCredit),\(postmatesCash),\(postmatesTotal),\(uberCredit),\(uberCash),\(uberTotal)\n"
         
-        csvText.append(newLine)
+
         
-        print(csvText)
+        csvText.append(pickupLine)
         
+        csvText.append("Deliveries\n")
+        
+        csvText.append("Delivery.com Credit,Delivery.com Cash,Delivery.com Total,Eat24 Credit,Eat24 Cash,Eat24 Total,Foodler Credit,Foodler Cash,Foodler Total,Groupon Credit,Groupon Cash,Groupon Total,Grubhub Credit,Grubhub Cash,Grubhub Total,In Store Credit,In Store Cash,In Store Total,Seamless Credit,Seamless Cash,Seamless Total,SLICE Credit,SLICE Cash,SLICE Total\n")
+        
+        
+        //Hardcode in 0 for 3 vendors becuase they are credit only, want to keep format the same
+        let deliveryLine = "\(dcomCredit),\(dcomCash),\(dcomTotal),\(eat24DeliveryCredit),\(eat24DeliveryCash),\(eat24DeliveryTotal),\(foodlerCredit),\(foodlerCash),\(foodlerTotal),\(grouponCredit),0,\(grouponTotal),\(grubhubCredit),\(grubhubCash),\(grubhubTotal),\(inStoreCredit),\(inStoreCash),\(inStoreTotal),\(seamlessCredit),0,\(seamlessTotal),\(sliceCredit),0,\(sliceTotal)\n"
+        
+        csvText.append(deliveryLine)
+        
+        csvText.append("Totals\n")
+        
+        csvText.append("$ Online Pickup,# Online Pickup,$ Deliveries,# Deliveries\n")
+        
+        let totalLine = "\(pickupCredit),\(pickupNum),\(deliveryTotal),\(deliveryNum)\n"
+        
+        csvText.append(totalLine)
+        
+        csvText.append("Driver\n")
+        
+        csvText.append("Tips,Delivery Fees,Earned,Payout\n")
+        
+        let earned = tips + deliveryfees
+        
+        let driverLine = "\(tips),\(deliveryfees),\(driverPay),\(earned)\n"
+        
+        csvText.append(driverLine)
+        
+        
+        //attempt to create file
         do {
             
             try csvText.write(to: path!, atomically: true, encoding: String.Encoding.utf8)
@@ -406,12 +455,12 @@ class EndOfDayViewController: UIViewController, MFMailComposeViewControllerDeleg
         }
         
         
-        if MFMailComposeViewController.canSendMail() {              //checking to see if it is possible to check mail
+        if MFMailComposeViewController.canSendMail() {              //checking to see if it is possible to send mail
             let emailController = MFMailComposeViewController()     //email view controller init
             emailController.mailComposeDelegate = self              //setting delegate to self
-            emailController.setToRecipients(["chrisjanowski@hotmail.com"])
-            emailController.setSubject("Email data for \(date)")
-            emailController.setMessageBody("<p>See attached .csv file for the excel data</p>", isHTML: true)
+            emailController.setToRecipients(["chrisjanowski@hotmail.com"])          //add emeraldmillan@gmail.com , jgaytan@uwalumni.com
+            emailController.setSubject("BIG G'S TAYLOR - Email data for \(date)")
+            emailController.setMessageBody("<p>See attached .csv file for the taylor street data</p>", isHTML: true)
             
             emailController.addAttachmentData(NSData(contentsOf: path!)! as Data, mimeType: "text/csv", fileName: "Orders.csv")
             
