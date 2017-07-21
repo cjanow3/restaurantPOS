@@ -65,7 +65,98 @@ class restaurantController
         }
     }
 
-    
+    //MARK: vendor struct and its functions to add/delete from list restaurant is partnered with
+    struct VendorItem {
+        var name:String?
+        var cash:Double?
+        var credit:Double?
+        var total:Double?
+        var num:Int16?
+        var pickup:Bool
+        
+        //Init() methods
+        init() {
+            
+            name   = ""
+            cash   = 0.0
+            credit = 0.0
+            total  = 0.0
+            num    = 0
+            pickup = true
+        }
+        
+        init(NAME:String, CASH:Double, CREDIT:Double,TOTAL:Double, NUM:Int16, PICKUP:Bool) {
+            
+            name   = NAME
+            cash   = CASH
+            credit = CREDIT
+            total  = TOTAL
+            num    = NUM
+            pickup = PICKUP
+        }
+        
+        //Setters
+        mutating func setName(NAME:String)
+        {
+            name = NAME
+        }
+        
+        mutating func setCash(CASH:Double)
+        {
+            cash = CASH
+        }
+        
+        mutating func setCredit(CREDIT:Double)
+        {
+            credit = CREDIT
+        }
+        
+        mutating func setTotal(TOTAL:Double)
+        {
+            total = TOTAL
+        }
+        
+        mutating func setNum(NUM:Int16)
+        {
+            num = NUM
+        }
+        
+        mutating func setPickup(PICKUP:Bool)
+        {
+            pickup = PICKUP
+        }
+        
+        //Getters
+        func getName() -> String
+        {
+            return name!
+        }
+        
+        func getCash() -> Double
+        {
+            return cash!
+        }
+        
+        func getCredit() -> Double
+        {
+            return credit!
+        }
+        
+        func getTotal() -> Double
+        {
+            return total!
+        }
+        
+        func getNum() -> Int16
+        {
+            return num!
+        }
+        
+        func getPickup() -> Bool
+        {
+            return pickup
+        }
+    }
     
     //MARK: order struct and its functions to store/retrieve/manipulate data
     struct OrderItem {
@@ -231,6 +322,35 @@ class restaurantController
         
     } //end save function
     
+    //Stores a VendorItem into coredata
+    class func storeVendor_OBJECT(newVendor:VendorItem) {
+        let context = getContext()
+        
+        let entity = NSEntityDescription.entity(forEntityName: "Vendor", in: context)
+        
+        let managedObj = NSManagedObject(entity: entity!, insertInto: context)
+        
+        managedObj.setValue(newVendor.name, forKey: "name")
+        managedObj.setValue(newVendor.cash, forKey: "cash")
+        managedObj.setValue(newVendor.credit, forKey: "credit")
+        managedObj.setValue(newVendor.total, forKey: "total")
+        managedObj.setValue(newVendor.num, forKey: "num")
+        managedObj.setValue(newVendor.pickup, forKey: "pickup")
+
+        do
+        {
+            try context.save();
+            print("saved!");
+            
+        }
+        catch
+        {
+            print(error.localizedDescription);
+        }
+        
+    } //end save function
+    
+    //MARK: Fetch functions
     //Returns an array of type OrderItem
     class func fetchOrders() -> [OrderItem] {
         var array = [OrderItem]()
@@ -255,9 +375,88 @@ class restaurantController
         return array
     }
     
+    //Returns an array of type VendorItem -- one array for both pickup/delivery
+    class func fetchVendors() -> [VendorItem] {
+        var array = [VendorItem]()
+        
+        let fetchRequest:NSFetchRequest<Vendor> = Vendor.fetchRequest();
+        
+        do {
+            let fetchResult = try getContext().fetch(fetchRequest);
+            
+            for res in fetchResult {
+                
+                let aVendor = VendorItem(NAME: res.name, CASH: res.cash, CREDIT: res.credit, TOTAL: res.total, NUM: res.num, PICKUP:res.pickup)
+                
+                array.append(aVendor);
+            }
+        }
+            
+        catch {
+            print(error.localizedDescription)
+        }
+        
+        return array
+    }
+    
+    //Returns an array of type VendorItem -- only composing array of pickup vendors
+    class func fetchPickupVendors() -> [VendorItem] {
+        var array = [VendorItem]()
+        
+        let fetchRequest:NSFetchRequest<Vendor> = Vendor.fetchRequest();
+        
+        do {
+            let fetchResult = try getContext().fetch(fetchRequest);
+            
+            for res in fetchResult {
+                
+                if (res.pickup)
+                {
+                    let aVendor = VendorItem(NAME: res.name, CASH: res.cash, CREDIT: res.credit, TOTAL: res.total, NUM: res.num, PICKUP:res.pickup)
+                    
+                    array.append(aVendor)
+                }
 
-    //MARK: Delete from core data functions
-    class func clean_ALL_CoreData() {
+            }
+        }
+            
+        catch {
+            print(error.localizedDescription)
+        }
+        
+        return array
+    }
+    
+    class func fetchDeliveryVendors() -> [VendorItem] {
+        var array = [VendorItem]()
+        
+        let fetchRequest:NSFetchRequest<Vendor> = Vendor.fetchRequest();
+        
+        do {
+            let fetchResult = try getContext().fetch(fetchRequest);
+            
+            for res in fetchResult {
+                
+                if (!res.pickup)
+                {
+                    let aVendor = VendorItem(NAME: res.name, CASH: res.cash, CREDIT: res.credit, TOTAL: res.total, NUM: res.num, PICKUP:res.pickup)
+                    
+                    array.append(aVendor)
+                }
+                
+            }
+        }
+            
+        catch {
+            print(error.localizedDescription)
+        }
+        
+        return array
+    }
+    
+
+    //MARK: Delete all orders from core data functions
+    class func cleanAllOrdersCoreData() {
         
         let fetchRequest:NSFetchRequest<Order> = Order.fetchRequest();
         
@@ -267,7 +466,7 @@ class restaurantController
         
         do
         {
-            print("Deleting all contents");
+            print("Deleting all orders");
             try getContext().execute(deleteRequest);
             
         }
@@ -277,6 +476,27 @@ class restaurantController
         }
     } //end clean_ALL_CoreData()
     
+    class func cleanAllVendorsCoreData() {
+        
+        let fetchRequest:NSFetchRequest<Vendor> = Vendor.fetchRequest();
+        
+        
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest:
+            fetchRequest as! NSFetchRequest<NSFetchRequestResult>);
+        
+        do
+        {
+            print("Deleting all vendors");
+            try getContext().execute(deleteRequest);
+            
+        }
+        catch
+        {
+            print(error.localizedDescription);
+        }
+    } //end clean_ALL_CoreData()
+    
+    //Delete specific orders from core data
     class func clean_SPECIFIC_CoreData() {
         
         let fetchRequest:NSFetchRequest<Order> = Order.fetchRequest();

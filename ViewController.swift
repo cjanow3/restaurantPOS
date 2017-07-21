@@ -367,17 +367,12 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     //MARK: Segues
     
     @IBAction func endofday(_ sender: Any) {
-        //performSegue(withIdentifier: "endofdayseg", sender: self)
+
     }
     
-    @IBAction func unwindView(segue: UIStoryboardSegue) {
+    @IBAction func unwindToOrdersView(segue: UIStoryboardSegue) {
         
-        //print("unwindEODView fired in View Controller")
-        
-        if segue.source is OrderStatsViewController
-        {
-            //do something here if we want to pass info from previous seg (EOD)
-        }
+
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
