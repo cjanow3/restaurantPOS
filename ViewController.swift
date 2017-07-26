@@ -26,8 +26,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     
     
     //MARK: Picker View for vendor -- includes list and functions needed for picker view
-    let pickupVendors =   ["Amazon", "Caviar", "Doordash", "Eat24", "Grubhub", "Postmates", "Uber"]
-    let deliveryVendors = ["Delivery.com", "Eat24", "Foodler", "Groupon", "Grubhub","In Store", "Seamless", "SLICE"]
+    let deliveryVendors = restaurantController.fetchVendorsStrings(pickupvendor: false)
+    let pickupVendors = restaurantController.fetchVendorsStrings(pickupvendor: true)
     
     @IBOutlet weak var pickupVendorPicker: UIPickerView!
     @IBOutlet weak var deliveryVendorPicker: UIPickerView!
@@ -186,11 +186,13 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         }
     }
     
+    //functions used to show and hide labels, tf, etc.
     func displayForPickup()
     {
         isPickup = true;
         tf_CustomerAddr.isUserInteractionEnabled = false
         tf_DeliveryFee.isUserInteractionEnabled = false
+        tf_Vendor.isUserInteractionEnabled = false
         tf_CustomerAddr.text = "Pickup"
         tf_DeliveryFee.text = "0"
         pickupVendorPicker.isHidden = false
@@ -202,12 +204,14 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         isPickup = false;
         tf_CustomerAddr.isUserInteractionEnabled = true
         tf_DeliveryFee.isUserInteractionEnabled = true
+        tf_Vendor.isUserInteractionEnabled = false
         tf_CustomerAddr.text = ""
         tf_DeliveryFee.text = "0"
         pickupVendorPicker.isHidden = true
         deliveryVendorPicker.isHidden = false
     }
     
+    //used to change global variable
     func changeIsCash(cash:Bool)
     {
         isCash = cash
@@ -338,18 +342,18 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     //if (anOrder.getVendor())
                     if (isCash)
                     {
-                        createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Cash Pickup\n", theOrder: anOrder)
+                        createAlert(title: "Is this correct?", message: "Name: \(orderName)\n Address: \(orderAddress)\n Vendor: \(orderVendor)\n Price: \(orderPrice)\n Tip: \(orderTip)\n Delivery Fee: \(orderDelivFee)\n Cash Pickup\n", theOrder: anOrder)
                     }else{
-                        createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Credit Pickup\n", theOrder: anOrder)
+                        createAlert(title: "Is this correct?", message: "Name: \(orderName)\n Address: \(orderAddress)\n Vendor: \(orderVendor)\n Price: \(orderPrice)\n Tip: \(orderTip)\n Delivery Fee: \(orderDelivFee)\n Credit Pickup\n", theOrder: anOrder)
                     }
                     
                 }else
                 {
                     if (isCash)
                     {
-                        createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Cash Delivery\n", theOrder: anOrder)
+                        createAlert(title: "Is this correct?", message: "Name: \(orderName)\n Address: \(orderAddress)\n Vendor: \(orderVendor)\n Price: \(orderPrice)\n Tip: \(orderTip)\n Delivery Fee: \(orderDelivFee)\n Cash Delivery\n", theOrder: anOrder)
                     }else{
-                        createAlert(title: "Is this correct?", message: "Name: \(tf_CustomerName.text!)\n Address: \(tf_CustomerAddr.text!)\n Vendor: \(tf_Vendor.text!)\n Price: \(tf_Price.text!)\n Tip: \(tf_Tip.text!)\n Delivery Fee: \(tf_DeliveryFee.text!)\n Credit Delivery\n", theOrder: anOrder)
+                        createAlert(title: "Is this correct?", message: "Name: \(orderName)\n Address: \(orderAddress)\n Vendor: \(orderVendor)\n Price: \(orderPrice)\n Tip: \(orderTip)\n Delivery Fee: \(orderDelivFee)\n Credit Delivery\n", theOrder: anOrder)
                     }
                     
                 }
@@ -414,31 +418,49 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         } //end detailseg option
     } //end prepareforseg
 
+    //used to dismiss keyboards
+    func doneClicked()
+    {
+        view.endEditing(true)
+    }
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
         
+    
+        //adding a refresher to table view
         refresher = UIRefreshControl()
         refresher.attributedTitle = NSAttributedString(string: "Updating...")
         refresher.addTarget(self, action: #selector(ViewController.populate), for: .valueChanged)
         tableView.addSubview(refresher)
-        
-        tf_Vendor.isUserInteractionEnabled = false
-        tf_CustomerAddr.isUserInteractionEnabled = false
 
-        pickupVendorPicker.isHidden = false
-        deliveryVendorPicker.isHidden = true
+        //initially display view for pickup
+        displayForPickup()
         
         
         
+        //creating done button to close keyboards
+        let toolBar = UIToolbar()
+        toolBar.sizeToFit()
+        
+        let doneButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.done, target: self, action: #selector(self.doneClicked))
+        
+        toolBar.setItems([doneButton], animated: false)
+        
+        //adding done button to keyboards
+        tf_CustomerName.inputAccessoryView = toolBar
+        tf_Price.inputAccessoryView = toolBar
+        tf_Tip.inputAccessoryView = toolBar
+        tf_DeliveryFee.inputAccessoryView = toolBar
+        tf_CustomerAddr.inputAccessoryView = toolBar
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
 
 
 }
