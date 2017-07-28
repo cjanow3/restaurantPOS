@@ -31,11 +31,10 @@ class EndOfDayViewController: UIViewController, MFMailComposeViewControllerDeleg
         let filenameEnding = "_TaylorOrderData.csv"
     
         formatter.dateFormat = "MM.dd.yyyy"
+        formatter.timeZone = NSTimeZone(name:"CST")! as TimeZone
         var filename = formatter.string(from: date)
         
         filename.append(filenameEnding)
-        
-        //print (filename)
         
         
         let path = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(filename)
@@ -458,7 +457,7 @@ class EndOfDayViewController: UIViewController, MFMailComposeViewControllerDeleg
         if MFMailComposeViewController.canSendMail() {              //checking to see if it is possible to send mail
             let emailController = MFMailComposeViewController()     //email view controller init
             emailController.mailComposeDelegate = self              //setting delegate to self
-            emailController.setToRecipients(["chrisjanowski@hotmail.com"])          //add emeraldmillan@gmail.com , jgaytan@uwalumni.com
+            emailController.setToRecipients(["chrisjanowski@hotmail.com","jgaytan@uwalumni.com","emeraldmillan@gmail.com"])
             emailController.setSubject("BIG G'S TAYLOR - Email data for \(date)")
             emailController.setMessageBody("<p>See attached .csv file for the taylor street data</p>", isHTML: true)
             
@@ -518,7 +517,7 @@ class EndOfDayViewController: UIViewController, MFMailComposeViewControllerDeleg
                 
             else
             {
-                restaurantController.clean_ALL_CoreData()
+                restaurantController.cleanAllOrdersCoreData()
                 self.createAlert(title: "Confirmed", message: "The day has been reset.")
                 
                 

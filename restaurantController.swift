@@ -72,8 +72,9 @@ class restaurantController
         var cash:Double?
         var credit:Double?
         var total:Double?
-        var num:Int16?
+        var num:Int?
         var pickup:Bool
+        var refund:Double?
         
         //Init() methods
         init() {
@@ -82,11 +83,12 @@ class restaurantController
             cash   = 0.0
             credit = 0.0
             total  = 0.0
+            refund = 0.0
             num    = 0
             pickup = true
         }
         
-        init(NAME:String, CASH:Double, CREDIT:Double,TOTAL:Double, NUM:Int16, PICKUP:Bool) {
+        init(NAME:String, CASH:Double, CREDIT:Double,TOTAL:Double, NUM:Int, PICKUP:Bool, REFUND:Double) {
             
             name   = NAME
             cash   = CASH
@@ -94,6 +96,7 @@ class restaurantController
             total  = TOTAL
             num    = NUM
             pickup = PICKUP
+            refund = REFUND
         }
         
         //Setters
@@ -117,7 +120,7 @@ class restaurantController
             total = TOTAL
         }
         
-        mutating func setNum(NUM:Int16)
+        mutating func setNum(NUM:Int)
         {
             num = NUM
         }
@@ -125,6 +128,11 @@ class restaurantController
         mutating func setPickup(PICKUP:Bool)
         {
             pickup = PICKUP
+        }
+        
+        mutating func setRefund(REFUND:Double)
+        {
+            refund = REFUND
         }
         
         //Getters
@@ -148,7 +156,7 @@ class restaurantController
             return total!
         }
         
-        func getNum() -> Int16
+        func getNum() -> Int
         {
             return num!
         }
@@ -156,6 +164,11 @@ class restaurantController
         func getPickup() -> Bool
         {
             return pickup
+        }
+        
+        func getRefund() -> Double
+        {
+            return refund!
         }
     }
     
@@ -198,7 +211,7 @@ class restaurantController
             
             for res in fetchResult {
                 
-                let aVendor = VendorItem(NAME: res.name, CASH: res.cash, CREDIT: res.credit, TOTAL: res.total, NUM: res.num, PICKUP:res.pickup)
+                let aVendor = VendorItem(NAME: res.name, CASH: res.cash, CREDIT: res.credit, TOTAL: res.total, NUM: res.num, PICKUP:res.pickup,REFUND:res.refund)
                 
                 array.append(aVendor);
             }
@@ -222,7 +235,7 @@ class restaurantController
             
             for res in fetchResult {
                 
-                let aVendor = VendorItem(NAME: res.name, CASH: res.cash, CREDIT: res.credit, TOTAL: res.total, NUM: res.num, PICKUP:res.pickup)
+                let aVendor = VendorItem(NAME: res.name, CASH: res.cash, CREDIT: res.credit, TOTAL: res.total, NUM: res.num, PICKUP:res.pickup,REFUND:res.refund)
                 
                 vendors.append(aVendor);
             }
@@ -270,7 +283,7 @@ class restaurantController
                 
                 if (res.pickup)
                 {
-                    let aVendor = VendorItem(NAME: res.name, CASH: res.cash, CREDIT: res.credit, TOTAL: res.total, NUM: res.num, PICKUP:res.pickup)
+                    let aVendor = VendorItem(NAME: res.name, CASH: res.cash, CREDIT: res.credit, TOTAL: res.total, NUM: res.num, PICKUP:res.pickup,REFUND:res.refund)
                     
                     array.append(aVendor)
                 }
@@ -297,7 +310,7 @@ class restaurantController
                 
                 if (!res.pickup)
                 {
-                    let aVendor = VendorItem(NAME: res.name, CASH: res.cash, CREDIT: res.credit, TOTAL: res.total, NUM: res.num, PICKUP:res.pickup)
+                    let aVendor = VendorItem(NAME: res.name, CASH: res.cash, CREDIT: res.credit, TOTAL: res.total, NUM: res.num, PICKUP:res.pickup, REFUND:res.refund)
                     
                     array.append(aVendor)
                 }

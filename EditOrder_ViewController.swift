@@ -546,12 +546,40 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
     
 
     
+    //used to dismiss keyboards
+    func doneClicked()
+    {
+        view.endEditing(true)
+    }
+    
     
     override func viewDidLoad()
     {
         super.viewDidLoad()
 
+        //initial view will display name
         displayName()
+        
+        //creating done button to close keyboards
+        let toolBar = UIToolbar()
+        toolBar.sizeToFit()
+        
+        let doneButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.done, target: self, action: #selector(self.doneClicked))
+        
+        toolBar.setItems([doneButton], animated: false)
+        
+        nameTF.inputAccessoryView = toolBar
+        addressTF.inputAccessoryView = toolBar
+        tipTF.inputAccessoryView = toolBar
+        priceTF.inputAccessoryView = toolBar
+        deliveryFeeTF.inputAccessoryView = toolBar
+        refundTF.inputAccessoryView = toolBar
+        
+        vendorTF.isUserInteractionEnabled = false
+        cashCreditTF.isUserInteractionEnabled = false
+        pickupDeliveryTF.isUserInteractionEnabled = false
+
+
     }
     
     
