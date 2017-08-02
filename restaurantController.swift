@@ -172,6 +172,33 @@ class restaurantController
         }
     }
     
+    class func zeroOutVendors()
+    {
+        let context = getContext()
+        //get request for entity
+        let vendorRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Vendor")
+        
+        
+        do {
+            
+            let vendorResults = try context.fetch(vendorRequest)
+            
+            for vendor in vendorResults as! [NSManagedObject]
+            {
+                vendor.setValue(0.0, forKey: "cash")
+                vendor.setValue(0.0, forKey: "credit")
+                vendor.setValue(0, forKey: "num")
+                vendor.setValue(0.0, forKey: "refund")
+                vendor.setValue(0.0, forKey: "total")
+
+            }
+
+        } catch{
+            print(error.localizedDescription)
+        }
+
+    }
+    
     //Stores a VendorItem into coredata
     class func storeVendor_OBJECT(newVendor:VendorItem) {
         let context = getContext()
@@ -364,18 +391,20 @@ class restaurantController
         var name:String?
         var address:String?
         var vendor:String?
+        var notes:String?
         var price:Double?
         var tip:Double?
         var delivFee:Double?
+        var refund:Double?
         var pickup:Bool
         var cash:Bool
-        var refund:Double?
         
         init() {
             
             name = ""
             address = ""
             vendor = ""
+            notes = "No notes have been written for this order."
             price = 0.0
             delivFee = 0.0
             tip = 0.0
@@ -384,17 +413,18 @@ class restaurantController
             cash = true
         }
         
-        init(NAME:String, ADDRESS:String, VENDOR:String, PRICE:Double, TIP:Double, DELIVFEE:Double, PICKUP:Bool, CASH:Bool, REFUND:Double) {
+        init(NAME:String, ADDRESS:String, VENDOR:String, PRICE:Double, TIP:Double, DELIVFEE:Double, PICKUP:Bool, CASH:Bool, REFUND:Double, NOTES:String) {
             
-            name = NAME;
-            address = ADDRESS;
-            vendor = VENDOR;
-            price = PRICE;
-            delivFee = DELIVFEE;
-            tip = TIP;
-            pickup = PICKUP;
-            cash = CASH
+            name = NAME
+            address = ADDRESS
+            vendor = VENDOR
+            notes = NOTES
+            price = PRICE
+            delivFee = DELIVFEE
+            tip = TIP
             refund = REFUND
+            pickup = PICKUP
+            cash = CASH
         }
         
         //setters
@@ -413,6 +443,10 @@ class restaurantController
             vendor = VENDOR
         }
         
+        mutating func setNotes(NOTES:String)
+        {
+            notes = NOTES
+        }
         mutating func setPrice(PRICE:Double)
         {
             price = PRICE
@@ -459,6 +493,11 @@ class restaurantController
             return vendor!
         }
         
+        func getNotes() -> String
+        {
+            return notes!
+        }
+        
         func getPrice() -> Double
         {
             return price!
@@ -474,6 +513,11 @@ class restaurantController
             return tip!
         }
         
+        func getRefund() -> Double
+        {
+            return refund!
+        }
+        
         func getPickup() -> Bool
         {
             return pickup
@@ -484,10 +528,8 @@ class restaurantController
             return cash
         }
         
-        func getRefund() -> Double
-        {
-            return refund!
-        }
+
+
     }
     
     //Stores an OrderItem into coredata
@@ -507,6 +549,7 @@ class restaurantController
         managedObj.setValue(newOrder.getPickup(), forKey: "pickup")
         managedObj.setValue(newOrder.getCash(), forKey: "cash")
         managedObj.setValue(newOrder.getRefund(), forKey: "refund")
+        managedObj.setValue(newOrder.getNotes(), forKey: "notes")
         
         
         do
@@ -536,7 +579,7 @@ class restaurantController
             
             for res in fetchResult {
                 
-                let anOrder = OrderItem(NAME: res.name!, ADDRESS: res.address!, VENDOR: res.vendor!, PRICE: res.price, TIP: res.tip, DELIVFEE: res.delivFee, PICKUP: res.pickup, CASH: res.cash, REFUND: res.refund)
+                let anOrder = OrderItem(NAME: res.name!, ADDRESS: res.address!, VENDOR: res.vendor!, PRICE: res.price, TIP: res.tip, DELIVFEE: res.delivFee, PICKUP: res.pickup, CASH: res.cash, REFUND: res.refund, NOTES: res.notes!)
                 
                 array.append(anOrder);
             }

@@ -7,13 +7,12 @@
 //
 
 import UIKit
+import CoreData
 
 class Cell_ViewController: UIViewController {
 
     
     //MARK: Labels and respective variables used for those labels
-    
-    @IBOutlet weak var statsButton: UIButton!
     
     @IBOutlet weak var name: UILabel!
     @IBOutlet weak var vendor: UILabel!
@@ -21,17 +20,19 @@ class Cell_ViewController: UIViewController {
     @IBOutlet weak var cashcredit: UILabel!
     @IBOutlet weak var pickupdelivery: UILabel!
     
+    @IBOutlet weak var notes: UITextField!
+    
     @IBOutlet weak var tip: UILabel!
     @IBOutlet weak var price: UILabel!
     @IBOutlet weak var deliveryfee: UILabel!
     @IBOutlet weak var refund: UILabel!
-    
     
     var cName:String?
     var cVendor:String?
     var cAddress:String?
     var cCashCredit:String?
     var cPickupDelivery:String?
+    var cNotes:String?
     
     var cPickup:Bool?
     var cCash:Bool?
@@ -41,10 +42,10 @@ class Cell_ViewController: UIViewController {
     var cPrice:Double?
     var cRefund:Double?
     
-    func hideButton()
-    {
-        statsButton.isHidden = true
-    }
+    //used to update notes through coredata
+    let appDelegate = UIApplication.shared.delegate as! AppDelegate
+    let context = restaurantController.getContext()
+
     
     @IBAction func backtomainmenu(_ sender: Any)
     {
@@ -52,11 +53,76 @@ class Cell_ViewController: UIViewController {
 
     }
     
-    @IBAction func customerStats(_ sender: Any)
-    {
-        createSimpleAlert(title: "NOT READY", message: "This doesn't do anything ( yet ;) )")
-    }
+
+    //MARK: Edit/Save button used to change order notes
     
+    @IBOutlet weak var editSaveButton: UIButton!
+    
+    @IBAction func editSaveClicked(_ sender: Any) {
+        
+        if editSaveButton.currentTitle == "Edit Note"
+        {
+            //
+            //Change button title from "Edit" to "Save"
+            //allow user to change notes text field
+            //save the current text inside the text field
+            //update the current text field to what it was saved to
+            //
+            
+            editSaveButton.setTitle("Save", for: .normal)
+            notes.isUserInteractionEnabled = true
+            
+            
+            
+        } else {
+            editSaveButton.setTitle("Edit Note", for: .normal)
+            notes.isUserInteractionEnabled = false
+            
+            var newNotes = ""
+            
+            // if empty string or string just without period (perhaps accidentally erased period)
+            if notes.text != "" || notes.text != "No notes have been written for this order"
+            {
+                newNotes = notes.text!
+            } else {
+
+                newNotes = "No notes have been written for this order."
+            }
+            
+            
+            //get request for order entity
+            let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Order")
+
+            do {
+                
+                let results = try context.fetch(request)
+                
+                for result in results as! [NSManagedObject]
+                {
+                    if ( (result.value(forKey: "notes") as? String) != nil &&  (result.value(forKey: "notes") as? String) == cNotes )
+                    {
+                        //Dont want to create alert if we are restoring to default string
+                        if newNotes != "No notes have been written for this order."
+                        {
+                            createSimpleAlert(title: "Notes Edited", message: "Notes changed from '\(cNotes!)' to '\(newNotes)'")
+
+                        }
+                        
+                        notes.text = newNotes
+                        result.setValue(newNotes, forKey: "notes")
+                        restaurantController.saveContext()
+
+                    }
+                }
+                
+            } catch {
+                print(error.localizedDescription)
+                return
+            }
+
+
+        }
+    }
     
     //Alert function
     func createSimpleAlert(title: String, message: String) {
@@ -76,7 +142,7 @@ class Cell_ViewController: UIViewController {
         {
             let destVC = segue.destination as! EditOrder_ViewController
             
-            let anOrder = restaurantController.OrderItem(NAME: cName!, ADDRESS: cAddress!, VENDOR: cVendor!, PRICE: cPrice!, TIP: cTip!, DELIVFEE: cDeliveryFee!, PICKUP: cPickup!, CASH: cCash!, REFUND: cRefund!)
+            let anOrder = restaurantController.OrderItem(NAME: cName!, ADDRESS: cAddress!, VENDOR: cVendor!, PRICE: cPrice!, TIP: cTip!, DELIVFEE: cDeliveryFee!, PICKUP: cPickup!, CASH: cCash!, REFUND: cRefund!,NOTES:cNotes!)
             
             destVC.cName = anOrder.getName()
             destVC.cVendor = anOrder.getVendor()
@@ -108,48 +174,32 @@ class Cell_ViewController: UIViewController {
             } // end indexPath -- should not ever be null -- however gets information for selected cell
         } //end detailseg option
 
-    
-    @IBAction func unwindEODView(segue: UIStoryboardSegue)
-    {
-       /*
-        if segue.source is EditOrder_ViewController
-        {
-            //do something here if we want to pass info from previous seg (EOD)
-            let sourceVC = segue.destination as! Cell_ViewController
-            
-            name.text = sourceVC.cName
-            vendor.text = sourceVC.cVendor
-            address.text = sourceVC.cAddress
-            cashcredit.text = sourceVC.cCashCredit
-            pickupdelivery.text = sourceVC.cPickupDelivery
-            
-            tip.text = sourceVC.cTip?.description
-            price.text = sourceVC.cPrice?.description
-            deliveryfee.text = sourceVC.cDeliveryFee?.description
-            refund.text = sourceVC.cRefund?.description
-            
-            
-        }*/
+    @IBAction func unwindToCellView(segue: UIStoryboardSegue) {
+        
+        
     }
+    
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Do any additional setup after loading the view.
-        
-        hideButton()
+        //Initially no edit will be done, so user cant change without clicking button
+        notes.isUserInteractionEnabled = false
     }
     
     //load each label with proper data before view appears
     override func viewWillAppear(_ animated: Bool) {
         
-        if let cName = cName, let cVendor = cVendor, let cAddress = cAddress, let cCashCredit = cCashCredit, let cPickupDelivery = cPickupDelivery, let cTip = cTip, let cDeliveryFee = cDeliveryFee, let cPrice = cPrice, let cRefund = cRefund {
+        if let cName = cName, let cVendor = cVendor, let cAddress = cAddress, let cCashCredit = cCashCredit, let cPickupDelivery = cPickupDelivery, let cTip = cTip, let cDeliveryFee = cDeliveryFee, let cPrice = cPrice, let cRefund = cRefund,let cNotes = cNotes {
             
             name.text = cName
             vendor.text = cVendor
             address.text = cAddress
             cashcredit.text = cCashCredit
             pickupdelivery.text = cPickupDelivery
+            
+            notes.text = cNotes
             
             tip.text = cTip.description
             price.text = cPrice.description
@@ -163,6 +213,8 @@ class Cell_ViewController: UIViewController {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
+    
     
 
 
