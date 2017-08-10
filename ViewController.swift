@@ -104,6 +104,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
+        
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ViewControllerTableViewCell
         
         cell.orderName.text = list[indexPath.row].getName()
@@ -134,12 +135,12 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             fetchRequest.predicate = predicate;
             
             let deleteRequest = NSBatchDeleteRequest(fetchRequest:
-                fetchRequest as! NSFetchRequest<NSFetchRequestResult>);
+                fetchRequest as! NSFetchRequest<NSFetchRequestResult>)
             
             do {
-                print("Deleting specific content(s)");
+                print("Deleting specific content(s)")
                 //Print are you sure message alert -- yes or no buttons
-                try restaurantController.getContext().execute(deleteRequest);
+                try restaurantController.getContext().execute(deleteRequest)
                 
             } catch {
                 
@@ -169,6 +170,9 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     @IBOutlet weak var pickupdeliverySeg: UISegmentedControl!
     @IBOutlet weak var cashcreditSeg: UISegmentedControl!
     
+    //$4 or $6 delivery fee -- easier than typing
+    @IBOutlet weak var delivFeeSegControl: UISegmentedControl!
+    
     //pickup/delivery
     @IBAction func pickupdelivery(_ sender: Any) {
         
@@ -182,9 +186,24 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             
             
         default:
-            break;
+            break
         }
     }
+    
+    @IBAction func changeDeliveryFee(_ sender: Any) {
+        
+        switch delivFeeSegControl.selectedSegmentIndex {
+        case 0:
+            tf_DeliveryFee.text = "0"
+        case 1:
+            tf_DeliveryFee.text = "4"
+        case 2:
+            tf_DeliveryFee.text = "6"
+        default:
+            break
+        }
+    }
+    
     
     //functions used to show and hide labels, tf, etc.
     func displayForPickup()
@@ -192,11 +211,16 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         isPickup = true;
         tf_CustomerAddr.isUserInteractionEnabled = false
         tf_DeliveryFee.isUserInteractionEnabled = false
+        delivFeeSegControl.isUserInteractionEnabled = false
         tf_Vendor.isUserInteractionEnabled = false
         tf_CustomerAddr.text = "Pickup"
         tf_DeliveryFee.text = "0"
         pickupVendorPicker.isHidden = false
         deliveryVendorPicker.isHidden = true
+        
+        delivFeeSegControl.selectedSegmentIndex = 0
+
+        
     }
     
     func displayForDelivery()
@@ -204,11 +228,14 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         isPickup = false;
         tf_CustomerAddr.isUserInteractionEnabled = true
         tf_DeliveryFee.isUserInteractionEnabled = true
+        delivFeeSegControl.isUserInteractionEnabled = true
         tf_Vendor.isUserInteractionEnabled = false
         tf_CustomerAddr.text = ""
         tf_DeliveryFee.text = "0"
         pickupVendorPicker.isHidden = true
         deliveryVendorPicker.isHidden = false
+        
+        delivFeeSegControl.selectedSegmentIndex = 0
     }
     
     //used to change global variable
@@ -279,6 +306,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             self.tf_Tip.text = "0"
             self.tf_DeliveryFee.text = "0"
             
+            
         })
         
         alert.addAction(cancel)
@@ -334,12 +362,14 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
             } else {
                 
                 
-                let anOrder = restaurantController.OrderItem(NAME: orderName, ADDRESS: orderAddress, VENDOR: orderVendor, PRICE: orderPrice, TIP: orderTip, DELIVFEE: orderDelivFee, PICKUP: isPickup, CASH: isCash, REFUND: 0.0)
+                let anOrder = restaurantController.OrderItem(NAME: orderName, ADDRESS: orderAddress, VENDOR: orderVendor, PRICE: orderPrice, TIP: orderTip, DELIVFEE: orderDelivFee, PICKUP: isPickup, CASH: isCash, REFUND: 0.0, NOTES: "No notes have been written for this order.")
+
                 
                 
                 if (isPickup)
                 {
-                    //if (anOrder.getVendor())
+                    
+                    //create alert for cash/credit pickup
                     if (isCash)
                     {
                         createAlert(title: "Is this correct?", message: "Name: \(orderName)\n Address: \(orderAddress)\n Vendor: \(orderVendor)\n Price: \(orderPrice)\n Tip: \(orderTip)\n Delivery Fee: \(orderDelivFee)\n Cash Pickup\n", theOrder: anOrder)
@@ -349,6 +379,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     
                 }else
                 {
+                    //create laert for cash/credit delivery
                     if (isCash)
                     {
                         createAlert(title: "Is this correct?", message: "Name: \(orderName)\n Address: \(orderAddress)\n Vendor: \(orderVendor)\n Price: \(orderPrice)\n Tip: \(orderTip)\n Delivery Fee: \(orderDelivFee)\n Cash Delivery\n", theOrder: anOrder)
@@ -392,6 +423,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 destVC.cPrice = list[indexPath.row].getPrice()
                 destVC.cDeliveryFee = list[indexPath.row].getDeliveryFee()
                 destVC.cRefund = list[indexPath.row].getRefund()
+                destVC.cNotes = list[indexPath.row].getNotes()
                 
                 destVC.cCash = list[indexPath.row].getCash()
                 destVC.cPickup = list[indexPath.row].getPickup()
@@ -427,8 +459,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-    
+            
         //adding a refresher to table view
         refresher = UIRefreshControl()
         refresher.attributedTitle = NSAttributedString(string: "Updating...")
@@ -438,6 +469,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         //initially display view for pickup
         displayForPickup()
         
+        //Deliv. Fee TF is always disabled
+        tf_DeliveryFee.isUserInteractionEnabled = false
         
         
         //creating done button to close keyboards

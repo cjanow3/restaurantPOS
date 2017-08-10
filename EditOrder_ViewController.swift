@@ -11,6 +11,7 @@ import CoreData
 
 class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource {
     
+    //used to update order through coredata
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     let context = restaurantController.getContext()
     
@@ -57,8 +58,6 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
     //arrays for some fields to prevent spelling errors
     let cashCredit = ["Cash", "Credit"]
     let pickupDelivery = ["Pickup", "Delivery"]
-    let vendors = ["Amazon", "Caviar", "Doordash", "Eat24", "Grubhub", "Postmates", "Uber" , "Delivery.com", "Eat24", "Foodler", "Groupon", "Grubhub", "Seamless", "SLICE"]
-    
 
     //fucntions to determine what pickerview is used
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
@@ -79,7 +78,7 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
             
         else if pickerView == vendorPicker
         {
-            return vendors[row]
+            return vendors[row].getName()
         }
         
         else
@@ -126,9 +125,11 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
         
         else if pickerView == vendorPicker
         {
-            vendorTF.text = vendors[row]
+            vendorTF.text = vendors[row].getName()
         }
     }
+    
+    var vendors:[restaurantController.VendorItem] = []
     
     //cell variables used to represent each data
     var cName:String?
@@ -136,6 +137,7 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
     var cAddress:String?
     var cCashCredit:String?
     var cPickupDelivery:String?
+    var cNotes:String?
     
     var cTip:Double?
     var cDeliveryFee:Double?

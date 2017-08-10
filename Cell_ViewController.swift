@@ -78,14 +78,22 @@ class Cell_ViewController: UIViewController {
             editSaveButton.setTitle("Edit Note", for: .normal)
             notes.isUserInteractionEnabled = false
             
-            var newNotes = ""
+            guard var newNotes = notes.text else {
+                createSimpleAlert(title: "Need input", message: "")
+                return
+            }
             
-            // if empty string or string just without period (perhaps accidentally erased period)
-            if notes.text != "" || notes.text != "No notes have been written for this order"
+            // if string is couple characters off, just correct it
+            if  (newNotes == "No notes have been written for this")        ||
+                (newNotes == "No notes have been written for this ")       ||
+                (newNotes == "No notes have been written for this o")      ||
+                (newNotes == "No notes have been written for this or")     ||
+                (newNotes == "No notes have been written for this ord")    ||
+                (newNotes == "No notes have been written for this orde")   ||
+                (newNotes == "No notes have been written for this order")  ||
+                (newNotes == "No notes have been written for this orderr") ||
+                (newNotes == "No notes have been written for this order..")
             {
-                newNotes = notes.text!
-            } else {
-
                 newNotes = "No notes have been written for this order."
             }
             
@@ -99,7 +107,7 @@ class Cell_ViewController: UIViewController {
                 
                 for result in results as! [NSManagedObject]
                 {
-                    if ( (result.value(forKey: "notes") as? String) != nil &&  (result.value(forKey: "notes") as? String) == cNotes )
+                    if ( (result.value(forKey: "notes") as? String) != nil &&  (result.value(forKey: "notes") as? String) == cNotes && (result.value(forKey: "name") as? String) != nil && (result.value(forKey: "name") as? String) == cName )
                     {
                         //Dont want to create alert if we are restoring to default string
                         if newNotes != "No notes have been written for this order."
@@ -154,13 +162,16 @@ class Cell_ViewController: UIViewController {
             destVC.cPrice = anOrder.getPrice()
             destVC.cRefund = anOrder.getRefund()
             
+            
             if (anOrder.getPickup())
             {
                 destVC.cPickupDelivery = "Pickup"
                 destVC.cAddress = "None -- Pickup"
+                destVC.vendors = restaurantController.fetchPickupVendors()
             } else {
                 destVC.cPickupDelivery = "Delivery"
                 destVC.cAddress = anOrder.getAddress()
+                destVC.vendors = restaurantController.fetchDeliveryVendors()
             }
             
             if (anOrder.getCash())
