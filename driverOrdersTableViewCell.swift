@@ -1,18 +1,24 @@
 //
-//  VendorTableViewCell.swift
+//  driverOrdersTableViewCell.swift
 //  restaurantPOS_Assist
 //
-//  Created by Chris Janowski on 7/27/17.
+//  Created by Chris Janowski on 9/1/17.
 //  Copyright © 2017 Chris Janowski. All rights reserved.
 //
 
 import UIKit
 
-class VendorTableViewCell: UITableViewCell {
-
-    @IBOutlet weak var vendorName: UILabel!
-
+class driverOrdersTableViewCell: UITableViewCell {
     
+    
+    @IBOutlet weak var custName: UILabel!
+    @IBOutlet weak var deliveryFee: UILabel!
+    @IBOutlet weak var tip: UILabel!
+    @IBOutlet weak var total: UILabel!
+    
+    
+    
+
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code

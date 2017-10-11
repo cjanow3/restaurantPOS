@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 class InfoViewController: UIViewController,UITableViewDelegate,UITableViewDataSource {
     
@@ -37,7 +38,39 @@ class InfoViewController: UIViewController,UITableViewDelegate,UITableViewDataSo
         return cell
     }
     
-    func populate() {
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        if (editingStyle == UITableViewCellEditingStyle.delete)
+        {
+            
+            let fetchRequest:NSFetchRequest<Contact> = Contact.fetchRequest()
+            
+            let predicate = NSPredicate(format: "name contains[c] %@", list[indexPath.row].getName())
+            
+            fetchRequest.predicate = predicate;
+            
+            let deleteRequest = NSBatchDeleteRequest(fetchRequest:
+                fetchRequest as! NSFetchRequest<NSFetchRequestResult>)
+            
+            do {
+                print("Deleting specific content(s)")
+                //Print are you sure message alert -- yes or no buttons
+                try restaurantController.getContext().execute(deleteRequest)
+                
+            } catch {
+                
+                print(error.localizedDescription);
+            }
+            
+            
+            
+            list.remove(at: indexPath.row)
+            
+            tableView.reloadData()
+        }
+    }
+
+    
+    @objc func populate() {
         
         list = restaurantController.fetchContacts()
         
@@ -107,7 +140,11 @@ class InfoViewController: UIViewController,UITableViewDelegate,UITableViewDataSo
     //end alert functions
 
 
-    
+    //used to dismiss keyboards
+    @objc func doneClicked()
+    {
+        view.endEditing(true)
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -117,6 +154,19 @@ class InfoViewController: UIViewController,UITableViewDelegate,UITableViewDataSo
         refresher.attributedTitle = NSAttributedString(string: "Updating...")
         refresher.addTarget(self, action: #selector(InfoViewController.populate), for: .valueChanged)
         tableView.addSubview(refresher)
+        
+        //creating done button to close keyboards
+        let toolBar = UIToolbar()
+        toolBar.sizeToFit()
+        
+        let doneButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.done, target: self, action: #selector(self.doneClicked))
+        
+        toolBar.setItems([doneButton], animated: false)
+        
+        //adding done button to keyboards
+        nameTF.inputAccessoryView = toolBar
+        relationshipTF.inputAccessoryView = toolBar
+        phoneNumTF.inputAccessoryView = toolBar
 
         
     }

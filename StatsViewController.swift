@@ -11,34 +11,29 @@ import CoreData
 
 class StatsViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
-    //used to update vendors through coredata
+    //
+    // Used to update vendors through coredata
+    //
+    
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     let context = restaurantController.getContext()
 
+    //
+    // MARK: Segmented Control definition
+    //
     
-    //MARK: Segmented Control
     @IBOutlet weak var pickupDeliveryDriverSeg: UISegmentedControl!
     
-    /*@IBAction func changeCell(_ sender: Any)
-    {
-        switch pickupDeliveryDriverSeg.selectedSegmentIndex
-        {
-        //case 0:
-        //case 1:
-        //case 2:
-        default:
-            
-        }
-    }
-    */
-    //MARK: Table View
+    //
+    // MARK: Table View function that returns number of elements
+    //
+    
     @IBOutlet weak var tableView: UITableView!
-    let list = restaurantController.fetchPickupVendors()
-    
-    
+    var refresher: UIRefreshControl!
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     
-       /* switch pickupDeliveryDriverSeg.selectedSegmentIndex
+       switch pickupDeliveryDriverSeg.selectedSegmentIndex
         {
         case 0:
             let list = restaurantController.fetchPickupVendors()
@@ -49,67 +44,10 @@ class StatsViewController: UIViewController, UITableViewDelegate, UITableViewDat
             return list.count + 1
             
         case 2:
-            let list = restaurantController.fetchDeliveryVendors()
-            return list .count + 1
+            let list = restaurantController.fetchDeliveryOrders()
+            return list.count + 1
         default:
-            return 0
-
-        }*/
-        
-        return list.count + 1
-
-
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
-        if indexPath.row == 0 {
-            let cell = tableView.dequeueReusableCell(withIdentifier: "totalVendorStatsCell", for: indexPath) as! vendorTotalStatsTableViewCell
-            let list = restaurantController.fetchPickupVendors()
-            
-            var totrefunds = 0.0
-            var totcash = 0.0
-            var totcredit = 0.0
-            var tottotal = 0.0
-            var totnum = 0
-            
-            for res in list
-            {
-                totcash += res.getCash()
-                totcredit += res.getCredit()
-                totnum += res.getNum()
-                totrefunds += res.getRefund()
-                
-                  
-            }
-            
-            tottotal = totcash + totcredit
-            
-            
-            cell.credit.text = totcredit.description
-            cell.cash.text = totcash.description
-            cell.num.text = totnum.description
-            cell.refunds.text = totrefunds.description
-            cell.total.text = tottotal.description
-            
-            return cell
-
-            
-        } else {
-            let cell = tableView.dequeueReusableCell(withIdentifier: "vendorStatsCell", for: indexPath) as! vendorStatsTableViewCell
-            
-            let list = restaurantController.fetchPickupVendors()
-            
-            //fill cells from returned list
-            
-            cell.vendorName.text = list[indexPath.row - 1].getName()
-            cell.cash.text = list[indexPath.row - 1].getCash().description
-            cell.credit.text = list[indexPath.row - 1].getCredit().description
-            cell.total.text = list[indexPath.row - 1].getTotal().description
-            cell.num.text = list[indexPath.row - 1].getNum().description
-            
- 
-            return cell
+            return 1
 
         }
         
@@ -117,7 +55,204 @@ class StatsViewController: UIViewController, UITableViewDelegate, UITableViewDat
 
     }
     
+    //
+    // Function that determines what each cell is composed of depending on its index
+    //
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
+        //
+        // Three cases that depend on seg control -- pickup/delivery/driver
+        //
+        
+        //
+        // if == 0 , then pickup so first display total cell, then all pickup vendors
+        //
+        
+        if pickupDeliveryDriverSeg.selectedSegmentIndex == 0 {
+            if indexPath.row == 0 {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "totalVendorStatsCell", for: indexPath) as! vendorTotalStatsTableViewCell
+                let list = restaurantController.fetchPickupVendors()
+                
+                var totrefunds = 0.0
+                var totcash = 0.0
+                var totcredit = 0.0
+                var tottotal = 0.0
+                var totnum = 0
+                
+                for res in list
+                {
+                    totcash += res.getCash()
+                    totcredit += res.getCredit()
+                    totnum += res.getNum()
+                    totrefunds += res.getRefund()
+                }
+                
+                tottotal = totcash + totcredit
+                
+                cell.credit.text = totcredit.description
+                cell.cash.text = totcash.description
+                cell.num.text = totnum.description
+                cell.refunds.text = totrefunds.description
+                cell.total.text = tottotal.description
+                
+                return cell
+                
+                
+            } else {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "vendorStatsCell", for: indexPath) as! vendorStatsTableViewCell
+                
+                let list = restaurantController.fetchPickupVendors()
+                
+                //fill cells from returned list
+                
+                cell.vendorName.text = list[indexPath.row - 1].getName()
+                cell.cash.text = list[indexPath.row - 1].getCash().description
+                cell.credit.text = list[indexPath.row - 1].getCredit().description
+                cell.total.text = list[indexPath.row - 1].getTotal().description
+                cell.num.text = list[indexPath.row - 1].getNum().description
+                
+                return cell
+                
+            }
+            
+            //
+            // if == 1 , then delivery so first display total cell, then all delivery vendors
+            //
+            
+        } else if pickupDeliveryDriverSeg.selectedSegmentIndex == 1 {
+            if indexPath.row == 0 {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "totalDeliveryStatsCell", for: indexPath) as! totalDeliveryVendorTableViewCell
+                
+                let list = restaurantController.fetchDeliveryVendors()
+                
+                var totrefunds = 0.0
+                var totcash = 0.0
+                var totcredit = 0.0
+                var tottotal = 0.0
+                var totnum = 0
+                
+                for res in list
+                {
+                    totcash += res.getCash()
+                    totcredit += res.getCredit()
+                    totnum += res.getNum()
+                    totrefunds += res.getRefund()
+                }
+                
+                tottotal = totcash + totcredit
+
+                cell.totalCredit.text = totcredit.description
+                cell.totalCash.text = totcash.description
+                cell.totalNum.text = totnum.description
+                cell.totalRefund.text = totrefunds.description
+                cell.total.text = tottotal.description
+                
+                return cell
+                
+                
+            } else {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "vendorStatsCell", for: indexPath) as! vendorStatsTableViewCell
+                
+                let list = restaurantController.fetchDeliveryVendors()
+                
+                //fill cells from returned list
+                
+                cell.vendorName.text = list[indexPath.row - 1].getName()
+                cell.cash.text = list[indexPath.row - 1].getCash().description
+                cell.credit.text = list[indexPath.row - 1].getCredit().description
+                cell.total.text = list[indexPath.row - 1].getTotal().description
+                cell.num.text = list[indexPath.row - 1].getNum().description
+                
+                return cell
+            }
+        } else {
+            
+            //
+            // if == 2 , then driver so first display total cell, then all delivery orders
+            //
+            
+            if indexPath.row == 0 {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "totalDriverStatsCell", for: indexPath) as! driverTotalTableViewCell
+                
+                let list = restaurantController.fetchDeliveryOrders()
+                
+                var totDF = 0.0
+                var totTip = 0.0
+                var totCash = 0.0
+                var totEarned = 0.0
+                var totDifference = 0.0
+                
+                for res in list {
+                    totDF += res.getDeliveryFee()
+                    totTip += res.getTip()
+                    totCash += res.getPrice()
+                }
+                
+                totEarned = totDF + totTip
+                totDifference = totEarned - totCash
+
+                cell.totalDeliveryFee.text = totDF.description
+                cell.totalTip.text = totTip.description
+                cell.totalDifference.text = totDifference.description
+                cell.totalEarned.text = totEarned.description
+                
+                if (totDifference > 0)
+                {
+                    cell.whoPays.text = "Store"
+                } else {
+                    cell.whoPays.text = "Driver"
+                }
+                
+                return cell
+                
+            } else {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "driverStatsCell", for: indexPath) as! driverOrdersTableViewCell
+                
+                let list = restaurantController.fetchDeliveryOrders()
+                
+                let isIndexValid = list.indices.contains(indexPath.row-1);
+                
+                if (isIndexValid) {
+                    //fill cells from returned list
+                    cell.custName.text = list[indexPath.row - 1].getName()
+                    cell.deliveryFee.text = list[indexPath.row - 1].getDeliveryFee().description
+                    cell.tip.text = list[indexPath.row - 1].getTip().description
+                    let total = list[indexPath.row - 1].getTip() + list[indexPath.row - 1].getDeliveryFee()
+                    cell.total.text = total.description
+                    
+                    return cell
+
+                } else {
+                    
+                    
+                    cell.custName.text = "nil"
+                    cell.deliveryFee.text = "nil"
+                    cell.tip.text = "nil"
+                    cell.total.text = "nil"
+                    return cell
+                }
+            }
+        }
+
+
+    }
+    
+    //
+    // Repopulates tableview once refresher is triggered
+    //
+    
+    func populate() {
+        
+        refresher.endRefreshing()
+        tableView.reloadData()
+    }
+    
+    //
+    // First zero out all vendor entities, then go through 
+    // all order and get totals for each vendor
+    //
+    
     func separateData()
     {
         
@@ -200,7 +335,20 @@ class StatsViewController: UIViewController, UITableViewDelegate, UITableViewDat
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        //
+        // Have data separated before the view loads
+        //
+        
         separateData()
+        
+        //
+        // Adding a refresher to table view
+        //
+        
+        refresher = UIRefreshControl()
+        refresher.attributedTitle = NSAttributedString(string: "Updating...")
+        refresher.addTarget(self, action: #selector(ViewController.populate), for: .valueChanged)
+        tableView.addSubview(refresher)
 
     }
 

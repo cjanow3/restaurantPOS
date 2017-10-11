@@ -184,6 +184,12 @@ class Cell_ViewController: UIViewController {
             
             } // end indexPath -- should not ever be null -- however gets information for selected cell
         } //end detailseg option
+    
+    //used to dismiss keyboards
+    @objc func doneClicked()
+    {
+        view.endEditing(true)
+    }
 
     @IBAction func unwindToCellView(segue: UIStoryboardSegue) {
         
@@ -218,6 +224,17 @@ class Cell_ViewController: UIViewController {
             refund.text = cRefund.description
             
         }
+        
+        //creating done button to close keyboards
+        let toolBar = UIToolbar()
+        toolBar.sizeToFit()
+        
+        let doneButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.done, target: self, action: #selector(self.doneClicked))
+        
+        toolBar.setItems([doneButton], animated: false)
+        
+        //adding done button to keyboards
+        notes.inputAccessoryView = toolBar
     }
 
     override func didReceiveMemoryWarning() {

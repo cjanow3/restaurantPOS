@@ -1,17 +1,24 @@
 //
-//  VendorTableViewCell.swift
+//  driverTotalTableViewCell.swift
 //  restaurantPOS_Assist
 //
-//  Created by Chris Janowski on 7/27/17.
+//  Created by Chris Janowski on 8/22/17.
 //  Copyright © 2017 Chris Janowski. All rights reserved.
 //
 
 import UIKit
 
-class VendorTableViewCell: UITableViewCell {
+class driverTotalTableViewCell: UITableViewCell {
 
-    @IBOutlet weak var vendorName: UILabel!
-
+    @IBOutlet weak var totalDeliveryFee: UILabel!
+    
+    @IBOutlet weak var totalTip: UILabel!
+    
+    @IBOutlet weak var totalDifference: UILabel!
+    
+    @IBOutlet weak var totalEarned: UILabel!
+    
+    @IBOutlet weak var whoPays: UILabel!
     
     override func awakeFromNib() {
         super.awakeFromNib()

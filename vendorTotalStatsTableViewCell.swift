@@ -1,5 +1,5 @@
 //
-//  VendorTableViewCell.swift
+//  vendorTotalStatsTableViewCell.swift
 //  restaurantPOS_Assist
 //
 //  Created by Chris Janowski on 7/27/17.
@@ -8,10 +8,17 @@
 
 import UIKit
 
-class VendorTableViewCell: UITableViewCell {
+class vendorTotalStatsTableViewCell: UITableViewCell {
+    
+    @IBOutlet weak var credit: UILabel!
+    
+    @IBOutlet weak var num: UILabel!
+    
+    @IBOutlet weak var refunds: UILabel!
+    
+    @IBOutlet weak var cash: UILabel!
 
-    @IBOutlet weak var vendorName: UILabel!
-
+    @IBOutlet weak var total: UILabel!
     
     override func awakeFromNib() {
         super.awakeFromNib()

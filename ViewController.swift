@@ -8,6 +8,7 @@
 
 import UIKit
 import CoreData
+import Firebase
 
 var isPickup = true
 var isCash = true
@@ -15,7 +16,15 @@ var isCash = true
 class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate {
     
     
+    //
+    // Create FirebaseDatabase reference
+    //
+    
+    
+    
+    //
     //MARK: Text fields for customer input
+    //
     
     @IBOutlet weak var tf_CustomerName: UITextField!
     @IBOutlet weak var tf_CustomerAddr: UITextField!
@@ -24,8 +33,10 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     @IBOutlet weak var tf_Tip: UITextField!
     @IBOutlet weak var tf_DeliveryFee: UITextField!
     
-    
+    //
     //MARK: Picker View for vendor -- includes list and functions needed for picker view
+    //
+    
     let deliveryVendors = restaurantController.fetchVendorsStrings(pickupvendor: false)
     let pickupVendors = restaurantController.fetchVendorsStrings(pickupvendor: true)
     
@@ -38,37 +49,32 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
         
-        if pickerView == pickupVendorPicker
-        {
-            return pickupVendors[row]
+
+        if pickerView == pickupVendorPicker {
+            if (pickupVendors.count > 0) {
+                return pickupVendors[row]
+            }
+        } else if pickerView == deliveryVendorPicker {
+            if (deliveryVendors.count > 0) {
+                return deliveryVendors[row]
+            }
         }
         
-        else if pickerView == deliveryVendorPicker
-        {
-            return deliveryVendors[row]
-        }
-        
-        else
-        {
-            return ""
-        }
+        return ""
+
         
     }
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
         
-        if pickerView == pickupVendorPicker
-        {
+        if pickerView == pickupVendorPicker {
             return pickupVendors.count
-        }
             
-        else if pickerView == deliveryVendorPicker
-        {
+        } else if pickerView == deliveryVendorPicker {
             return deliveryVendors.count
-        }
             
-        else
-        {
+        } else {
+            
             return 1
         }
 
@@ -77,25 +83,26 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         
         
-        if pickerView == pickupVendorPicker
-        {
-            tf_Vendor.text = pickupVendors[row]
-        }
-            
-        else if pickerView == deliveryVendorPicker
-        {
-            tf_Vendor.text = deliveryVendors[row]
+        if pickerView == pickupVendorPicker {
+            if (pickupVendors.count > 0) {
+                tf_Vendor.text = pickupVendors[row]
+            }
+        } else if pickerView == deliveryVendorPicker {
+            if (deliveryVendors.count > 0) {
+                tf_Vendor.text = deliveryVendors[row]
+            }
         }
 
     }
-    //end picker view
     
     
     
     //MARK: Table View initialization and refresh control
     
     @IBOutlet weak var tableView: UITableView!
+    
     var list = restaurantController.fetchOrders()
+    
     var refresher: UIRefreshControl!
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -104,21 +111,33 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
+        if (list.count > 0) {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ViewControllerTableViewCell
+            
+            cell.orderName.text = list[indexPath.row].getName()
+            cell.orderVendor.text = list[indexPath.row].getVendor()
+            let price = list[indexPath.row].getPrice() - list[indexPath.row].getRefund()
+            cell.orderPrice.text = price.description
+            
+            if (list[indexPath.row].getPickup())
+            {
+                cell.orderPickupDelivery.text = "Pickup"
+                
+            }else{
+                cell.orderPickupDelivery.text = "Delivery"
+            }
+            
+
+            return cell
+            
+        }
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ViewControllerTableViewCell
         
-        cell.orderName.text = list[indexPath.row].getName()
-        cell.orderVendor.text = list[indexPath.row].getVendor()
-        let price = list[indexPath.row].getPrice() - list[indexPath.row].getRefund()
-        cell.orderPrice.text = price.description
-        
-        if (list[indexPath.row].getPickup())
-        {
-            cell.orderPickupDelivery.text = "Pickup"
-
-        }else{
-            cell.orderPickupDelivery.text = "Delivery"
-        }
+        cell.orderName.text = "nil"
+        cell.orderVendor.text = "nil"
+        cell.orderPrice.text = "nil"
+        cell.orderPickupDelivery.text = "nil"
         
         return cell
     }
@@ -147,7 +166,6 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 print(error.localizedDescription);
             }
 
-
             
             list.remove(at: indexPath.row)
             
@@ -155,7 +173,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         }
     }
     
-    func populate() {
+    @objc func populate() {
         
         list = restaurantController.fetchOrders()
         
@@ -169,23 +187,25 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     
     @IBOutlet weak var pickupdeliverySeg: UISegmentedControl!
     @IBOutlet weak var cashcreditSeg: UISegmentedControl!
-    
-    //$4 or $6 delivery fee -- easier than typing
+
+    //
+    // $4 or $6 delivery fee -- easier than typing
+    //
     @IBOutlet weak var delivFeeSegControl: UISegmentedControl!
     
+    //
     //pickup/delivery
+    //
     @IBAction func pickupdelivery(_ sender: Any) {
         
         switch pickupdeliverySeg.selectedSegmentIndex {
             
         case 0:
             displayForPickup()
-            
         case 1:
             displayForDelivery()
-            
-            
         default:
+            displayForPickup()
             break
         }
     }
@@ -204,8 +224,10 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         }
     }
     
+    //
+    // functions used to show and hide labels, tf, etc.
+    //
     
-    //functions used to show and hide labels, tf, etc.
     func displayForPickup()
     {
         isPickup = true;
@@ -213,6 +235,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         tf_DeliveryFee.isUserInteractionEnabled = false
         delivFeeSegControl.isUserInteractionEnabled = false
         tf_Vendor.isUserInteractionEnabled = false
+        tf_Vendor.text = ""
         tf_CustomerAddr.text = "Pickup"
         tf_DeliveryFee.text = "0"
         pickupVendorPicker.isHidden = false
@@ -223,13 +246,13 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         
     }
     
-    func displayForDelivery()
-    {
+    func displayForDelivery() {
         isPickup = false;
         tf_CustomerAddr.isUserInteractionEnabled = true
         tf_DeliveryFee.isUserInteractionEnabled = true
         delivFeeSegControl.isUserInteractionEnabled = true
         tf_Vendor.isUserInteractionEnabled = false
+        tf_Vendor.text = ""
         tf_CustomerAddr.text = ""
         tf_DeliveryFee.text = "0"
         pickupVendorPicker.isHidden = true
@@ -238,13 +261,20 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         delivFeeSegControl.selectedSegmentIndex = 0
     }
     
-    //used to change global variable
+    //
+    // used to change global variable
+    //
+    
     func changeIsCash(cash:Bool)
     {
         isCash = cash
     }
     
+    
+    //
     //cash/credit
+    //
+    
     @IBAction func cashcredit(_ sender: Any) {
         
         switch cashcreditSeg.selectedSegmentIndex {
@@ -263,8 +293,9 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     
     
     
-    
-    //MARK: UIAlert functions
+    //
+    // MARK: UIAlert functions
+    //
     func createSimpleAlert(title: String, message: String) {
         
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
@@ -323,77 +354,53 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     
     @IBAction func addOrder(_ sender: Any) {
         
-        if (tf_CustomerName.text == "")
-        {
+        if (tf_CustomerName.text == "") {
             createSimpleAlert(title: "Additional input required", message: "Name field was left blank")
-        }
-            
-        else if (tf_CustomerAddr.text == "")
-        {
+        } else if (tf_CustomerAddr.text == "") {
             createSimpleAlert(title: "Additional input required", message: "Address field was left blank")
-            
-        }
-            
-        else if (tf_Price.text == "")
-        {
+        } else if (tf_Price.text == "") {
             createSimpleAlert(title: "Additional input required", message: "Price field was left blank")
-            
-        }
-            
-        else if (tf_Vendor.text == "")
-        {
+        } else if (tf_Vendor.text == "") {
             createSimpleAlert(title: "Additional input required", message: "Vendor field was left blank")
-            
-        }
-            
-        else
-        {
+        } else {
               
-            guard let orderName = self.tf_CustomerName.text, let orderAddress = self.tf_CustomerAddr.text, let orderVendor = self.tf_Vendor.text, let orderPrice = Double(self.tf_Price.text!), let orderTip = Double(self.tf_Tip.text!), let orderDelivFee = Double(self.tf_DeliveryFee.text!) else
-            {
+            guard let orderName = self.tf_CustomerName.text, let orderAddress = self.tf_CustomerAddr.text, let orderVendor = self.tf_Vendor.text, let orderPrice = Double(self.tf_Price.text!), let orderTip = Double(self.tf_Tip.text!), let orderDelivFee = Double(self.tf_DeliveryFee.text!) else {
                 createSimpleAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
                 return
             }
+                
+            let anOrder = restaurantController.OrderItem(NAME: orderName, ADDRESS: orderAddress, VENDOR: orderVendor, PRICE: orderPrice, TIP: orderTip, DELIVFEE: orderDelivFee, PICKUP: isPickup, CASH: isCash, REFUND: 0.0, NOTES: "No notes have been written for this order.")
+
+                
+                
+            if (isPickup) {
+                
+                //
+                //create alert for cash/credit pickup
+                //
             
-            //Another check to see if Groupon, SLICE, or Seamless were inputted with cash -- it is credit only
-            if ( isCash && (orderVendor == "Groupon" || orderVendor == "SLICE" || orderVendor == "Seamless") )
-            {
-                createSimpleAlert(title: "Check input", message: "Attempted to add order with vendor that doesn't accept cash.")
+                if (isCash) {
+                    
+                    createAlert(title: "Is this correct?", message: "Name: \(orderName)\n Address: \(orderAddress)\n Vendor: \(orderVendor)\n Price: \(orderPrice)\n Tip: \(orderTip)\n Delivery Fee: \(orderDelivFee)\n Cash Pickup\n", theOrder: anOrder)
+                    
+                } else {
+                    
+                    createAlert(title: "Is this correct?", message: "Name: \(orderName)\n Address: \(orderAddress)\n Vendor: \(orderVendor)\n Price: \(orderPrice)\n Tip: \(orderTip)\n Delivery Fee: \(orderDelivFee)\n Credit Pickup\n", theOrder: anOrder)
+                }
+                    
             } else {
                 
+                //
+                //create alert for cash/credit delivery
+                //
                 
-                let anOrder = restaurantController.OrderItem(NAME: orderName, ADDRESS: orderAddress, VENDOR: orderVendor, PRICE: orderPrice, TIP: orderTip, DELIVFEE: orderDelivFee, PICKUP: isPickup, CASH: isCash, REFUND: 0.0, NOTES: "No notes have been written for this order.")
-
-                
-                
-                if (isPickup)
-                {
-                    
-                    //create alert for cash/credit pickup
-                    if (isCash)
-                    {
-                        createAlert(title: "Is this correct?", message: "Name: \(orderName)\n Address: \(orderAddress)\n Vendor: \(orderVendor)\n Price: \(orderPrice)\n Tip: \(orderTip)\n Delivery Fee: \(orderDelivFee)\n Cash Pickup\n", theOrder: anOrder)
-                    }else{
-                        createAlert(title: "Is this correct?", message: "Name: \(orderName)\n Address: \(orderAddress)\n Vendor: \(orderVendor)\n Price: \(orderPrice)\n Tip: \(orderTip)\n Delivery Fee: \(orderDelivFee)\n Credit Pickup\n", theOrder: anOrder)
-                    }
-                    
-                }else
-                {
-                    //create laert for cash/credit delivery
-                    if (isCash)
-                    {
-                        createAlert(title: "Is this correct?", message: "Name: \(orderName)\n Address: \(orderAddress)\n Vendor: \(orderVendor)\n Price: \(orderPrice)\n Tip: \(orderTip)\n Delivery Fee: \(orderDelivFee)\n Cash Delivery\n", theOrder: anOrder)
-                    }else{
-                        createAlert(title: "Is this correct?", message: "Name: \(orderName)\n Address: \(orderAddress)\n Vendor: \(orderVendor)\n Price: \(orderPrice)\n Tip: \(orderTip)\n Delivery Fee: \(orderDelivFee)\n Credit Delivery\n", theOrder: anOrder)
-                    }
-                    
+                if (isCash) {
+                    createAlert(title: "Is this correct?", message: "Name: \(orderName)\n Address: \(orderAddress)\n Vendor: \(orderVendor)\n Price: \(orderPrice)\n Tip: \(orderTip)\n Delivery Fee: \(orderDelivFee)\n Cash Delivery\n", theOrder: anOrder)
+                } else {
+                    createAlert(title: "Is this correct?", message: "Name: \(orderName)\n Address: \(orderAddress)\n Vendor: \(orderVendor)\n Price: \(orderPrice)\n Tip: \(orderTip)\n Delivery Fee: \(orderDelivFee)\n Credit Delivery\n", theOrder: anOrder)
                 }
-                
+                    
             }
-            
-
-            
-            
         }
     } //end addOrder
 
@@ -451,29 +458,39 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     } //end prepareforseg
 
     //used to dismiss keyboards
-    func doneClicked()
-    {
+    @objc func doneClicked() {
         view.endEditing(true)
     }
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
-            
+        
+        //
         //adding a refresher to table view
+        //
+        
         refresher = UIRefreshControl()
         refresher.attributedTitle = NSAttributedString(string: "Updating...")
         refresher.addTarget(self, action: #selector(ViewController.populate), for: .valueChanged)
         tableView.addSubview(refresher)
 
+        //
         //initially display view for pickup
+        
+        //
         displayForPickup()
         
+        //
         //Deliv. Fee TF is always disabled
+        //
+        
         tf_DeliveryFee.isUserInteractionEnabled = false
         
-        
+        //
         //creating done button to close keyboards
+        //
+        
         let toolBar = UIToolbar()
         toolBar.sizeToFit()
         
@@ -481,12 +498,16 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         
         toolBar.setItems([doneButton], animated: false)
         
+        //
         //adding done button to keyboards
+        //
+        
         tf_CustomerName.inputAccessoryView = toolBar
         tf_Price.inputAccessoryView = toolBar
         tf_Tip.inputAccessoryView = toolBar
         tf_DeliveryFee.inputAccessoryView = toolBar
         tf_CustomerAddr.inputAccessoryView = toolBar
+        
     }
 
     override func didReceiveMemoryWarning() {

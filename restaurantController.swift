@@ -65,8 +65,11 @@ class restaurantController
         }
     }
 
+    //
     //MARK: VendorItem
     //MARK: vendor struct and its functions to add/delete from list restaurant is partnered with
+    //
+    
     struct VendorItem {
         var name:String?
         var cash:Double?
@@ -175,6 +178,7 @@ class restaurantController
     class func zeroOutVendors()
     {
         let context = getContext()
+        
         //get request for entity
         let vendorRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Vendor")
         
@@ -199,7 +203,10 @@ class restaurantController
 
     }
     
+    //
     //Stores a VendorItem into coredata
+    //
+    
     class func storeVendor_OBJECT(newVendor:VendorItem) {
         let context = getContext()
         
@@ -227,7 +234,10 @@ class restaurantController
         
     } //end save function
     
+    //
     //Returns an array of type VendorItem -- one array for both pickup/delivery
+    //
+    
     class func fetchVendors() -> [VendorItem] {
         var array = [VendorItem]()
         
@@ -251,7 +261,10 @@ class restaurantController
         return array
     }
     
+    //
     //MARK: Returns the string of the vendorItem (used for picker view)
+    //
+    
     class func fetchVendorsStrings(pickupvendor:Bool) -> [String] {
         var vendors = [VendorItem]()
         
@@ -277,6 +290,7 @@ class restaurantController
         //
         //If option was true return only pickup vendors, else return only delivery vendors
         //
+        
         if (pickupvendor) {
             for v in vendors {
                 if (v.getPickup()) {
@@ -297,7 +311,10 @@ class restaurantController
         return stringArray
     }
     
+    //
     //Returns an array of type VendorItem -- only composing array of pickup vendors
+    //
+    
     class func fetchPickupVendors() -> [VendorItem] {
         var array = [VendorItem]()
         
@@ -384,8 +401,11 @@ class restaurantController
         }
     } //end cleanAllOrdersCoreData()
 
+    //
     //MARK: OrderItem
     //MARK: order struct and its functions to store/retrieve/manipulate data
+    //
+    
     struct OrderItem {
         
         var name:String?
@@ -532,7 +552,10 @@ class restaurantController
 
     }
     
+    //
     //Stores an OrderItem into coredata
+    //
+    
     class func storeOrder_OBJECT(newOrder:OrderItem) {
         let context = getContext();
         
@@ -566,9 +589,11 @@ class restaurantController
     } //end save function
     
 
-    
+    //
     //MARK: Fetch functions
     //Returns an array of type OrderItem
+    //
+    
     class func fetchOrders() -> [OrderItem] {
         var array = [OrderItem]()
         
@@ -592,9 +617,41 @@ class restaurantController
         return array
     }
     
+    //
+    //Returns an array of type OrderItem -- only deliveries
+    //
     
-
+    class func fetchDeliveryOrders() -> [OrderItem] {
+        var array = [OrderItem]()
+        
+        let fetchRequest:NSFetchRequest<Order> = Order.fetchRequest();
+        
+        do {
+            let fetchResult = try getContext().fetch(fetchRequest);
+            
+            for res in fetchResult {
+                
+                if (!res.pickup)
+                {
+                    let anOrder = OrderItem(NAME: res.name!, ADDRESS: res.address!, VENDOR: res.vendor!, PRICE: res.price, TIP: res.tip, DELIVFEE: res.delivFee, PICKUP: res.pickup, CASH: res.cash, REFUND: res.refund, NOTES: res.notes!)
+                    
+                    array.append(anOrder)
+                }
+                
+            }
+        }
+            
+        catch {
+            print(error.localizedDescription)
+        }
+        
+        return array
+    }
+    
+    //
     //MARK: Delete all orders from core data functions
+    //
+    
     class func cleanAllOrdersCoreData() {
         
         let fetchRequest:NSFetchRequest<Order> = Order.fetchRequest();
@@ -616,8 +673,10 @@ class restaurantController
     } //end cleanAllOrdersCoreData()
     
 
-    
+    //
     //Delete specific orders from core data
+    //
+    
     class func clean_SPECIFIC_CoreData() {
         
         let fetchRequest:NSFetchRequest<Order> = Order.fetchRequest();
@@ -642,8 +701,10 @@ class restaurantController
         }
     } //end cleanCoreData()
     
+    //
     //MARK: ContactItem
     //MARK: ContactItem struct and its functions
+    //
     
     struct ContactItem
     {
@@ -699,7 +760,10 @@ class restaurantController
         }
     } //end ContactItem struct declaration
     
+    //
     //Stores a ContactItem into coredata
+    //
+    
     class func storeOrder_OBJECT(newContact:ContactItem) {
         let context = getContext();
         
@@ -726,7 +790,10 @@ class restaurantController
         
     } //end save function
 
+    //
     //Returns an array of type ContactItem
+    //
+    
     class func fetchContacts() -> [ContactItem] {
         var array = [ContactItem]()
         
@@ -752,6 +819,72 @@ class restaurantController
 
     
     
+    
+    struct employeeItem {
+        
+        var hoursWorked:Double
+        var name:String?
+        
+        init(newName:String,newHoursWorked:Double){
+            name = newName
+            hoursWorked = newHoursWorked
+        }
+        
+        //
+        // Getters and setters
+        //
+        
+        mutating func getHoursWorked() -> Double {
+            
+            return hoursWorked
+        }
+        
+        mutating func getName() -> String {
+            return name!
+        }
+        
+        mutating func setHoursWorked(newHoursWorked:Double) {
+            hoursWorked = newHoursWorked
+        }
+        
+        mutating func setName(newName:String) {
+            name = newName
+        }
+        
+        //
+        // Adds current hours worked with previous hours worked total
+        //
+        
+        mutating func addToHours(additionalHours:Double) {
+            hoursWorked += additionalHours
+        }
+    }
+    
+    //
+    //Returns an array of type OrderItem -- only deliveries
+    //
+    
+    class func fetchEmployees() -> [employeeItem] {
+        var array = [employeeItem]()
+        
+        let fetchRequest:NSFetchRequest<Employee> = Employee.fetchRequest();
+        
+        do {
+            let fetchResult = try getContext().fetch(fetchRequest);
+            
+            for res in fetchResult {
+                
+                let anEmployee = employeeItem(newName: res.name!, newHoursWorked: res.hoursWorked)
+                array.append(anEmployee)
+            }
+        }
+            
+        catch {
+            print(error.localizedDescription)
+        }
+        
+        return array
+    }
     
     
 }
