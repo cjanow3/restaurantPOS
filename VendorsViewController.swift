@@ -7,34 +7,44 @@
 //
 
 import UIKit
-import CoreData
+import FirebaseDatabase
 
 class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewDelegate {
     
-    //initialize variables for view to pickup for initial view
-    var isPickup:Bool = true
-    var isPickupString:String = "Pickup"
-    var list = restaurantController.fetchVendorsStrings(pickupvendor: true)
+    //
+    // Create FirebaseDatabase reference
+    //
     
-    //MARK: Functions used to display appropriate data in table view
+    var ref:DatabaseReference!
+    var refHandle: UInt!
+    
+    
+    //
+    // - initialize variables for pickup as initial view
+    // - create lists that will display vendors
+    //
+    
+    var isPickup:Bool = true
+    
+    var pickupvendorslist = [newVendor]()
+    var deliveryvendorslist = [newVendor]()
+    
+
+    //
+    // Functions used to display appropriate data in table view
+    //
+    
     @IBOutlet weak var vendorName: UITextField!
     
-    func showPickup()
-    {
-        list = restaurantController.fetchVendorsStrings(pickupvendor: true)
-        isPickup = true
-        isPickupString = "Pickup"
-
-    }
+    //
+    // Segmented Control
+    //
+    // If first index (0) is selected -- display pickup vendors
+    // If second index (1) is selected -- display delivery vendors
+    //
+    // Vendors are taken from FirebaseDatabase
+    //
     
-    func showDelivery()
-    {
-        list = restaurantController.fetchVendorsStrings(pickupvendor: false)
-        isPickup = false
-        isPickupString = "Delivery"
-    }
-    
-    //MARK: Segmented Control
     @IBOutlet weak var pickupDeliverySeg: UISegmentedControl!
     
     @IBAction func changePickup(_ sender: Any)
@@ -42,114 +52,143 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
         switch pickupDeliverySeg.selectedSegmentIndex
         {
         case 0:
-            showPickup()
+            isPickup = true
+            getPickupVendors()
+            break
     
         case 1:
-            showDelivery()
+            isPickup = false
+            getDeliveryVendors()
+            break
+            
         default:
             break
         }
     } //end seg action function
     
+
+    //
+    // Deselects row in table view
+    //
     
-    
-    //MARK: Table View functions
-    var refresher: UIRefreshControl!
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath as IndexPath, animated: true)
+    }
     
     @IBOutlet weak var tableView: UITableView!
 
+    //
+    // Returns appropriate count for rows in table view
+    //
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return list.count
+
+        switch pickupDeliverySeg.selectedSegmentIndex
+        {
+        case 0:
+            return pickupvendorslist.count
+            
+        case 1:
+            return deliveryvendorslist.count
+            
+        default:
+            return 0
+        }
+        
     }
+    
+    //
+    // Determines what is displayed in table view based on selected index
+    //
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "vendorCell", for: indexPath) as! VendorTableViewCell
-        
-        cell.vendorName.text = list[indexPath.row]
-                
-        return cell
-    }
-    
-    @objc func populate() {
-        
-        if pickupDeliverySeg.selectedSegmentIndex == 0
+        switch pickupDeliverySeg.selectedSegmentIndex
         {
-            list = restaurantController.fetchVendorsStrings(pickupvendor: true)
-            refresher.endRefreshing()
-            tableView.reloadData()
-        } else
-        {
-            list = restaurantController.fetchVendorsStrings(pickupvendor: false)
-            refresher.endRefreshing()
-            tableView.reloadData()
+        case 0:
+            let cell = tableView.dequeueReusableCell(withIdentifier: "vendorCell", for: indexPath) as! VendorTableViewCell
+            
+            let vendor = pickupvendorslist[indexPath.row]
+            
+            cell.vendorName.text = vendor.name
+            
+            return cell
+        case 1:
+            let cell = tableView.dequeueReusableCell(withIdentifier: "vendorCell", for: indexPath) as! VendorTableViewCell
+            
+            let vendor = deliveryvendorslist[indexPath.row]
+            
+            cell.vendorName.text = vendor.name
+            
+            return cell
+        default:
+            let cell = tableView.dequeueReusableCell(withIdentifier: "vendorCell", for: indexPath) as! VendorTableViewCell
+            
+            
+            cell.vendorName.text = "nil"
+            
+            return cell
         }
-
+        
+        
     }
+
+    //
+    // Delete button - Removes vendor from database and updates table view
+    //
     
-    //Delete button
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if (editingStyle == UITableViewCellEditingStyle.delete)
         {
             
-            let fetchRequest:NSFetchRequest<Vendor> = Vendor.fetchRequest();
-            
-            let predicate = NSPredicate(format: "name contains[c] %@", list[indexPath.row])
-            
-            fetchRequest.predicate = predicate;
-            
-            let deleteRequest = NSBatchDeleteRequest(fetchRequest:
-                fetchRequest as! NSFetchRequest<NSFetchRequestResult>)
-            
-            do {
-                print("Deleting specific content(s)")
-                //Print are you sure message alert -- yes or no buttons
-                try restaurantController.getContext().execute(deleteRequest)
-                
-            } catch {
-                
-                print(error.localizedDescription)
-                return
+            switch pickupDeliverySeg.selectedSegmentIndex
+            {
+            case 0:
+                ref.child("vendors").child("pickup vendors").child(pickupvendorslist[indexPath.row].getName()).removeValue()
+                getPickupVendors()
+                break
+            case 1:
+                ref.child("vendors").child("delivery vendors").child(deliveryvendorslist[indexPath.row].getName()).removeValue()
+                getDeliveryVendors()
+                break
+            default:
+                break
             }
             
-            
-            
-            list.remove(at: indexPath.row)
-            
-            tableView.reloadData()
         }
     }
+ 
 
-    //MARK: Save button to add new vendor -- has confirmation in UIAlert
+    //
+    // Save button to add new vendor to FirebaseDatabae -- has confirmation in verifyNewVendorInUIAlert
+    //
+    
     @IBAction func save(_ sender: Any) {
-
-        
         guard let name = vendorName.text else {
             createSimpleAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
             return
+        }
+        
+        let aVendor = newVendor(NAME: name, CASH: 0.0, CREDIT: 0.0, TOTAL: 0.0, NUM: 0,PICKUP: isPickup, REFUND: 0.0)
+        
+        if (isPickup) {
+            verifyNewVendorInUIAlert(title: "Is this correct?", message: "Name: '\(name)'\n\nType: Pickup", theVendor: aVendor.self)
+
+        } else {
+            verifyNewVendorInUIAlert(title: "Is this correct?", message: "Name: '\(name)'\n\nType: Delivery", theVendor: aVendor.self)
 
         }
-        
-        //create an alert to notify user about no input
-        if name == "" {
             
-            createSimpleAlert(title: "No input", message: "There was no input for a vendor name, try again.")
-            
-        //create a vendor item and pass it into a ui alert to determine whether to store or not
-        } else {
-            
-            let newVendor = restaurantController.VendorItem(NAME: name, CASH: 0.0, CREDIT: 0.0, TOTAL: 0.0, NUM: 0,PICKUP: isPickup, REFUND: 0.0)
-            
-            createAlert(title: "Is this correct?", message: "Name: '\(name)'\n\nType: \(isPickupString)", theVendor: newVendor)
-        }
-        
         
         
 
     }
     
-    //MARK: Alert functions
-    func createAlert(title: String, message: String, theVendor:restaurantController.VendorItem) {
+    //
+    // MARK: Alert functions
+    //
+    
+    func verifyNewVendorInUIAlert(title: String, message: String, theVendor: newVendor) {
         
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         
@@ -159,11 +198,55 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
         //create ok action
         let ok = UIAlertAction(title: "OK", style: .default, handler: { (action: UIAlertAction) -> Void in print("OK")
             
-            restaurantController.storeVendor_OBJECT(newVendor: theVendor)
+            //
+            // Stores vendor in firebase database
+            //
             
+            if (theVendor.getPickup()) {
+                
+                let vendorInfo = [
+                    "name":  theVendor.getName(),
+                    "cash": theVendor.getCash(),
+                    "credit":   theVendor.getCredit(),
+                    "total":   theVendor.getTotal(),
+                    "num":   theVendor.getNum(),
+                    "refund":   theVendor.getRefund(),
+                    "pickup":   theVendor.getPickup()
+                    ] as [String : Any]
+                
+                
+                self.ref.child("vendors").child("pickup vendors").child(theVendor.getName()).setValue(vendorInfo)
+                print(theVendor.getName() + " stored")
+        
+            } else {
+                
+                let vendorInfo = [
+                    "name":  theVendor.getName(),
+                    "cash": theVendor.getCash(),
+                    "credit":   theVendor.getCredit(),
+                    "total":   theVendor.getTotal(),
+                    "num":   theVendor.getNum(),
+                    "refund":   theVendor.getRefund(),
+                    "pickup":   theVendor.getPickup()
+                    ] as [String : Any]
+                
+                
+                self.ref.child("vendors").child("delivery vendors").child(theVendor.getName()).setValue(vendorInfo)
+                print(theVendor.getName() + " stored")
+            }
             
             self.vendorName.text = ""
             
+            
+            //
+            // Refresh table view
+            //
+            
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+                print("tableview refreshed in OK alert button")
+
+            }
             
         })
         
@@ -175,6 +258,9 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
         
     }
 
+    //
+    // Displays UIAlert with some text
+    //
     
     func createSimpleAlert(title: String, message: String) {
         
@@ -187,7 +273,143 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
         
     } //end alert functions
     
-    //used to dismiss keyboards
+    
+    //
+    // Grabs all pickup vendors from FirebaseDatabase and refreshes table view
+    //
+    
+    func getPickupVendors(){
+        
+        self.pickupvendorslist.removeAll()
+        
+        ref.child("vendors").child("pickup vendors").observe(.childAdded, with: { (snapshot) in
+            
+            
+            if let dictionary = snapshot.value as? [String : AnyObject] {
+                
+                let isaPickupOrder = dictionary["pickup"] as! Bool
+                
+                //
+                // Determine if vendor is a pickup vendor
+                //
+                
+                if (isaPickupOrder) {
+                    let vendor = newVendor()
+                    
+                    vendor.name = dictionary["name"] as? String
+                    vendor.cash = dictionary["cash"] as? Double
+                    vendor.credit = dictionary["credit"] as? Double
+                    vendor.total = dictionary["total"] as? Double
+                    vendor.num = dictionary["num"] as? Int
+                    vendor.refund = dictionary["refund"] as? Double
+                    vendor.pickup = dictionary["pickup"] as! Bool
+                    
+                    var beenAdded = false
+                    
+                    for v in self.pickupvendorslist {
+                        if v.getName() == vendor.getName() {
+                            beenAdded = true
+                        }
+                    }
+                    
+                    if (!beenAdded) {
+                        self.pickupvendorslist.append(vendor)
+                        print("has")
+                    } else {
+                        print("not")
+                    }
+                    
+                }
+                
+                
+                //
+                // Refresh Tableview
+                //
+                
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                }
+                
+                
+                
+                
+            }
+            
+        })
+        
+        
+    } //end getPickupVendors
+    
+    
+    //
+    // Grabs all delivery vendors from FirebaseDatabase and refreshes table view
+    //
+    
+    func getDeliveryVendors(){
+        
+        self.deliveryvendorslist.removeAll()
+        
+        ref.child("vendors").child("delivery vendors").observe(.childAdded, with: { (snapshot) in
+            if let dictionary = snapshot.value as? [String : AnyObject] {
+                
+                let isaDeliveryOrder = dictionary["pickup"] as! Bool
+                
+                //
+                // Determine if vendor is a delivery vendor
+                //
+                
+                if (!isaDeliveryOrder) {
+                    let vendor = newVendor()
+                    
+                    vendor.name = dictionary["name"] as? String
+                    vendor.cash = dictionary["cash"] as? Double
+                    vendor.credit = dictionary["credit"] as? Double
+                    vendor.total = dictionary["total"] as? Double
+                    vendor.num = dictionary["num"] as? Int
+                    vendor.refund = dictionary["refund"] as? Double
+                    vendor.pickup = dictionary["pickup"] as! Bool
+                    
+                    //
+                    // Determines if item has already been added to the array
+                    //
+                    // NOTE: I feel like this is a workaround but I can't find a better solution...
+                    //       Every time I click on opposite index in seg control, creates extra
+                    //       objects when adding new vendor
+                    //
+                    
+                    var beenAdded = false
+                    for v in self.deliveryvendorslist {
+                        if v.getName() == vendor.getName() {
+                            beenAdded = true
+                        }
+                    }
+                    
+                    if (!beenAdded) {
+                        self.deliveryvendorslist.append(vendor)
+                    } else {
+                    }
+                }
+                
+                
+                //
+                // Refresh Tableview
+                //
+                
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                }
+                
+            }
+            
+        })
+        
+        
+    } //end getDeliveryVendors
+    
+    //
+    // used to dismiss keyboards
+    //
+    
     @objc func doneClicked()
     {
         view.endEditing(true)
@@ -195,14 +417,18 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
     
     override func viewDidLoad() {
         super.viewDidLoad()
+       
+        //
+        // Initialize database reference and display table view for pickup vendors
+        //
         
-        //adding refresher to table view
-        refresher = UIRefreshControl()
-        refresher.attributedTitle = NSAttributedString(string: "Updating...")
-        refresher.addTarget(self, action: #selector(VendorsViewController.populate), for: .valueChanged)
-        tableView.addSubview(refresher)
+        ref = Database.database().reference()
+        getPickupVendors()
 
+        //
         //creating done button to close keyboards
+        //
+        
         let toolBar = UIToolbar()
         toolBar.sizeToFit()
         
@@ -215,14 +441,12 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
         
     }
 
+    
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
     
-    //pickup --  Amazon Caviar Doordash Eat24 Grubhub Postmates Uber
-    //Delivery.com Eat24 Foodler Groupon Grubhub Seamless SLICE In Store
-
-
 
 }
