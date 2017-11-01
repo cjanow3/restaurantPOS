@@ -7,13 +7,11 @@
 //
 
 import UIKit
-import CoreData
+import FirebaseDatabase
 
 class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource {
     
-    //used to update order through coredata
-    let appDelegate = UIApplication.shared.delegate as! AppDelegate
-    let context = restaurantController.getContext()
+    var ref:DatabaseReference!
     
     //seg control to choose which field to edit
     @IBOutlet weak var editSegControl: UISegmentedControl!
@@ -54,6 +52,8 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
     @IBOutlet weak var cashCreditPicker: UIPickerView!
     @IBOutlet weak var vendorPicker: UIPickerView!
     
+    var vendorslist = [newVendor]()
+
 
     //arrays for some fields to prevent spelling errors
     let cashCredit = ["Cash", "Credit"]
@@ -64,27 +64,26 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
         return 1
     }
     
+    //
+    // Pickviews for cash/credit and pickup/delivery
+    //
+    // Determine which picker view is being used,
+    // then display corresponding informatin
+    //
+    //
+    
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
         
-        if pickerView == pickupDeliveryPicker
-        {
+        if pickerView == pickupDeliveryPicker {
             return pickupDelivery[row]
-        }
-        
-        else if pickerView == cashCreditPicker
-        {
+        } else if pickerView == cashCreditPicker{
             return cashCredit[row]
-        }
-            
-        else if pickerView == vendorPicker
-        {
-            return vendors[row].getName()
+        } else if pickerView == vendorPicker{
+            return vendorslist[row].getName()
         }
         
-        else
-        {
-            return ""
-        }
+        return ""
+
         
     }
     
@@ -102,36 +101,37 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
 
         else if pickerView == vendorPicker
         {
-            return vendors.count
+            return vendorslist.count
         }
             
         else
         {
-            return 2
+            return 0
         }
     }
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         
-        if pickerView == pickupDeliveryPicker
-        {
+        if pickerView == pickupDeliveryPicker{
             pickupDeliveryTF.text = pickupDelivery[row]
-        }
-            
-        else if pickerView == cashCreditPicker
-        {
+        } else if pickerView == cashCreditPicker {
             cashCreditTF.text = cashCredit[row]
-        }
-        
-        else if pickerView == vendorPicker
-        {
-            vendorTF.text = vendors[row].getName()
+        } else if pickerView == vendorPicker {
+            vendorTF.text = vendorslist[row].getName()
         }
     }
     
-    var vendors:[restaurantController.VendorItem] = []
+    //
+    // End cash/credit and pickup/delivery picker view functions
+    //
     
+    
+    
+    
+    //
     //cell variables used to represent each data
+    //
+    
     var cName:String?
     var cVendor:String?
     var cAddress:String?
@@ -188,363 +188,159 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
     } //end seg control edit display options
     
     
+    //
+    // MARK: Save button
+    //
+    // name, vendor, address, cash/credit, pickup/delivery, tip, price, DF, refund
+    //
     
-    //MARK: Save button
+    
     @IBAction func saveEditOrder(_ sender: Any) {
         
-        //get request for order entity
-        let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Order")
-        
-        //determine which index is being selected -- then update the field & create alert specifiying change
-        if (editSegControl.selectedSegmentIndex == 0)
-        {
-            if nameTF.text != ""
-            {
-                guard let newName = nameTF.text else
-                {
-                    createSimpleAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
-                    return
-                }
-                
-                do {
-                    
-                    let results = try context.fetch(request)
-                    
-                    for result in results as! [NSManagedObject]
-                    {
-                        if ( (result.value(forKey: "name") as? String) != nil &&  (result.value(forKey: "name") as? String) == cName )
-                        {
-                            createSimpleAlert(title: "Name Edited", message: "Name changed from \(cName!) to \(newName)")
-                            nameTF.text = ""
-                            result.setValue(newName, forKey: "name")
-                            restaurantController.saveContext()
-                        }
-                    }
-                    
-                } catch {
-                    print(error.localizedDescription)
-                    return
-                }
-                
-            } else{
-                createSimpleAlert(title: "Error", message: "Attemping to edit order without any entry")
-            }
-        }
+        switch (editSegControl.selectedSegmentIndex) {
             
-        else if (editSegControl.selectedSegmentIndex == 1)
-        {
-            if vendorTF.text != ""
-            {
-                guard let newVendor = vendorTF.text else
-                {
-                    createSimpleAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
-                    return
-                }
-                
-                do {
-                    
-                    let results = try context.fetch(request)
-                    
-                    for result in results as! [NSManagedObject]
-                    {
-                        if ( (result.value(forKey: "vendor") as? String) != nil &&  (result.value(forKey: "vendor") as? String) == cVendor && (result.value(forKey: "name") as? String) != nil &&  (result.value(forKey: "name") as? String) == cName)
-                        {
-                            createSimpleAlert(title: "Vendor Edited", message: "Vendor changed from \(cVendor!) to \(newVendor)")
-                            vendorTF.text = ""
-
-                            result.setValue(newVendor, forKey: "vendor")
-                            restaurantController.saveContext()
-                        }
-                    }
-                    
-                } catch {
-                    print(error.localizedDescription)
-                    return
-                }
-                
-            } else{
-                createSimpleAlert(title: "Error", message: "Attemping to edit order without any entry")
+        case 0:
+            guard let name = nameTF.text else{
+                return
             }
-        }
-        
-        else if (editSegControl.selectedSegmentIndex == 2)
-        {
-            if addressTF.text != ""
-            {
-                guard let newAddress = addressTF.text else
-                {
-                    createSimpleAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
-                    return
-                }
-                
-                do {
-                    
-                    let results = try context.fetch(request)
-                    
-                    for result in results as! [NSManagedObject]
-                    {
-                        if ( (result.value(forKey: "address") as? String) != nil &&  (result.value(forKey: "address") as? String) == cAddress && (result.value(forKey: "name") as? String) != nil &&  (result.value(forKey: "name") as? String) == cName )
-                        {
-                            createSimpleAlert(title: "Address Edited", message: "Address changed from \(cAddress!) to \(newAddress)")
-                            addressTF.text = ""
-
-                            result.setValue(newAddress, forKey: "address")
-                            restaurantController.saveContext()
-                        }
-                    }
-                    
-                } catch {
-                    print(error.localizedDescription)
-                    return
-                }
-            } else{
-                createSimpleAlert(title: "Error", message: "Attemping to edit order without any entry")
-            }
-        }
-        
-        else if (editSegControl.selectedSegmentIndex == 3)
-        {
-            if cashCreditTF.text != ""
-            {
-                guard let newCashCreditString = cashCreditTF.text else
-                {
-                    createSimpleAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
-                    return
-                }
-                
-                var newCashCredit = true
-
-                
-                if (newCashCreditString == "Cash")
-                {
-                    newCashCredit = true
-                } else {
-                    newCashCredit = false
-                }
-                
-                do {
-                    
-                    let results = try context.fetch(request)
-                    
-                    for result in results as! [NSManagedObject]
-                    {
-                        if ( (result.value(forKey: "cash") as? Bool) != nil &&  (result.value(forKey: "cash") as? Bool) == cCash && (result.value(forKey: "name") as? String) != nil &&  (result.value(forKey: "name") as? String) == cName )
-                        {
-                            createSimpleAlert(title: "Cash/Credit Edited", message: "Cash/Credit changed from \(cCashCredit!) to \(newCashCreditString)")
-                            cashCreditTF.text = ""
-
-                            result.setValue(newCashCredit, forKey: "cash")
-                            restaurantController.saveContext()
-                        }
-                    }
-                    
-                } catch {
-                    print(error.localizedDescription)
-                    return
-                }
-                
-                
-            } else{
-                createSimpleAlert(title: "Error", message: "Attemping to edit order without any entry")
-            }
-        }
-        
-        else if (editSegControl.selectedSegmentIndex == 4)
-        {
             
-            var newPickupDelivery = true
+            setName(newName: name)
+        case 1:
+            guard let vendor = vendorTF.text else{
+                return
+            }
             
-            if pickupDeliveryTF.text != ""
-            {
-                guard let newPickupDeliveryString = pickupDeliveryTF.text else
-                {
-                    createSimpleAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
-                    return
-                }
-                
-                if (newPickupDeliveryString == "Pickup")
-                {
-                    newPickupDelivery = true
-                } else {
-                    newPickupDelivery = false
-                }
-                
-                do {
-                    
-                    let results = try context.fetch(request)
-                    
-                    for result in results as! [NSManagedObject]
-                    {
-                        if ( (result.value(forKey: "pickup") as? Bool) != nil &&  (result.value(forKey: "pickup") as? Bool) == cPickup && (result.value(forKey: "name") as? String) != nil &&  (result.value(forKey: "name") as? String) == cName )                        {
-                            createSimpleAlert(title: "Pickup/Delivery Edited", message: "Pickup/Delivery changed from \(cPickupDelivery!) to \(newPickupDeliveryString)")
-                            pickupDeliveryTF.text = ""
+            setVendor(newVendor: vendor)
+        case 2:
+            guard let address = addressTF.text else{
+                return
+            }
+            
+            setAddress(newAddress: address)
+        case 3:
+            guard let cash = cashCreditTF.text else{
+                return
+            }
+            
+            var orderCash = true
 
-                            result.setValue(newPickupDelivery, forKey: "pickup")
-                            restaurantController.saveContext()
-                        }
-                    }
-                    
-                } catch {
-                    print(error.localizedDescription)
-                    return
-                }
-                
-            } else{
-                createSimpleAlert(title: "Error", message: "Attemping to edit order without any entry")
+            if (cash == "Cash") {
+                orderCash = true
+            } else {
+                orderCash = false
             }
+            
+            setCash(newCash: orderCash)
+        case 4:
+            guard let pickup = pickupDeliveryTF.text else{
+                return
+            }
+            
+            var orderPickup = true
+            
+            if (pickup == "Pickup") {
+                orderPickup = true
+            } else {
+                orderPickup = false
+            }
+            
+            setPickup(newPickup: orderPickup)
+        case 5:
+            guard let tip = Double(tipTF.text!) else{
+                return
+            }
+            
+            setTip(newTip: tip)
+        case 6:
+            guard let price = Double(priceTF.text!) else{
+                return
+            }
+            
+            setPrice(newPrice: price)
+        
+        case 7:
+            guard let df = Double(deliveryFeeTF.text!) else{
+                return
+            }
+            
+            setDeliveryFee(newDF: df)
+        case 8:
+            guard let refund = Double(refundTF.text!) else{
+                return
+            }
+            
+            setRefund(newRefund: refund)
+        default:
+            break
+            
+            
         }
         
-        else if (editSegControl.selectedSegmentIndex == 5)
-        {
-            if tipTF.text != ""
-            {
-                
-                guard let newTip = Double(tipTF.text!) else
-                {
-                    createSimpleAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
-                    return
-                }
-                
-                
-                do {
-                    
-                    let results = try context.fetch(request)
-                    
-                    for result in results as! [NSManagedObject]
-                    {
-                        if ( (result.value(forKey: "tip") as? Double) != nil &&  (result.value(forKey: "tip") as? Double) == cTip && (result.value(forKey: "name") as? String) != nil &&  (result.value(forKey: "name") as? String) == cName )
-                        {
-                            createSimpleAlert(title: "Tip Edited", message: "Tip changed from \(cTip!) to \(newTip)")
-                            tipTF.text = ""
-                            
-                            result.setValue(newTip, forKey: "tip")
-                            restaurantController.saveContext()
-                        }
-                    }
-                    
-                } catch {
-                    print(error.localizedDescription)
-                    return
-                }
-
-            } else{
-                createSimpleAlert(title: "Error", message: "Attemping to edit order without any entry")
-            }
-        }
-        
-        else if (editSegControl.selectedSegmentIndex == 6)
-        {
-            if priceTF.text != ""
-            {
-                //let guard statement
-                guard let newPrice = Double(priceTF.text!), let cPrice = cPrice else
-                {
-                    createSimpleAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
-                    return
-                }
-                
-                do {
-                    
-                    let results = try context.fetch(request)
-                    
-                    for result in results as! [NSManagedObject]
-                    {
-                        if ( (result.value(forKey: "price") as? Double) != nil &&  (result.value(forKey: "price") as? Double) == cPrice && (result.value(forKey: "name") as? String) != nil &&  (result.value(forKey: "name") as? String) == cName )
-                        {
-                            createSimpleAlert(title: "Price Edited", message: "Price changed from \(cPrice) to \(newPrice)")
-                            priceTF.text = ""
-                            
-                            result.setValue(newPrice, forKey: "price")
-                            restaurantController.saveContext()
-                        }
-                    }
-                    
-                } catch {
-                    print(error.localizedDescription)
-                    return
-                }
-                
-            } else{
-                createSimpleAlert(title: "Error", message: "Attemping to edit order without any entry")
-            }
-        }
-        
-        else if (editSegControl.selectedSegmentIndex == 7)
-        {
-            if deliveryFeeTF.text != ""
-            {
-                //let guard statement
-                guard let newDeliveryFee = Double(deliveryFeeTF.text!) else
-                {
-                    createSimpleAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
-                    return
-                }
-                
-                do {
-                    
-                    let results = try context.fetch(request)
-                    
-                    for result in results as! [NSManagedObject]
-                    {
-                        if ( (result.value(forKey: "delivFee") as? Double) != nil &&  (result.value(forKey: "delivFee") as? Double) == cDeliveryFee && (result.value(forKey: "name") as? String) != nil &&  (result.value(forKey: "name") as? String) == cName )
-                        {
-                            createSimpleAlert(title: "Delivery Fee Edited", message: "Delivery Fee changed from \(cDeliveryFee!) to \(newDeliveryFee)")
-                            deliveryFeeTF.text = ""
-                            
-                            result.setValue(newDeliveryFee, forKey: "delivFee")
-                            restaurantController.saveContext()
-                        }
-                    }
-                    
-                } catch {
-                    print(error.localizedDescription)
-                    return
-                }
-                
-            } else{
-                createSimpleAlert(title: "Error", message: "Attemping to edit order without any entry")
-            }
-        }
-        
-        else if (editSegControl.selectedSegmentIndex == 8)
-        {
-            if refundTF.text != ""
-            {
-                guard let newRefund = Double(refundTF.text!), let cRefund = cRefund else
-                {
-                    createSimpleAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
-                    return
-                }
-                
-                do {
-                    
-                    let results = try context.fetch(request)
-                    
-                    for result in results as! [NSManagedObject]
-                    {
-                        if ( (result.value(forKey: "refund") as? Double) != nil && (result.value(forKey: "refund") as? Double) == cRefund && (result.value(forKey: "name") as? String) != nil &&  (result.value(forKey: "name") as? String) == cName )
-                        {
-                            createSimpleAlert(title: "Refund Edited", message: "Refund changed from \(cRefund) to \(newRefund)")
-                            refundTF.text = ""
-                            
-                            result.setValue(newRefund, forKey: "refund")
-                            restaurantController.saveContext()
-                        }
-                    }
-                    
-                } catch {
-                    print(error.localizedDescription)
-                    return
-                }
-                
-            } else{
-                createSimpleAlert(title: "Error", message: "Attemping to edit order without any entry")
-            }
-        }
+    }
+    
+    func setName(newName: String) {
+        print(newName)
         
         
         
     }
+    
+    func setAddress(newAddress: String) {
+        print(newAddress)
+
+        ref.child("orders").child(cName!).child("address").setValue(newAddress)
+
+    }
+    
+    func setVendor(newVendor: String) {
+        print(newVendor)
+
+        ref.child("orders").child(cName!).child("vendor").setValue(newVendor)
+
+    }
+    
+    func setPrice(newPrice: Double) {
+        print(newPrice)
+        
+        ref.child("orders").child(cName!).child("price").setValue(newPrice)
+
+    }
+    
+    func setTip(newTip: Double) {
+        print(newTip)
+        
+        ref.child("orders").child(cName!).child("tip").setValue(newTip)
+
+    }
+    
+    func setDeliveryFee(newDF: Double) {
+        print(newDF)
+        
+        ref.child("orders").child(cName!).child("delivery fee").setValue(newDF)
+
+    }
+    
+    func setPickup(newPickup: Bool) {
+        print(newPickup)
+        
+        ref.child("orders").child(cName!).child("pickup").setValue(newPickup)
+
+    }
+    
+    func setCash(newCash: Bool) {
+        print(newCash)
+        
+        ref.child("orders").child(cName!).child("cash").setValue(newCash)
+
+    }
+    
+    func setRefund(newRefund: Double) {
+        print(newRefund)
+        
+        ref.child("orders").child(cName!).child("refund").setValue(newRefund)
+
+    }
+    
     
 
     
@@ -559,10 +355,18 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
     {
         super.viewDidLoad()
 
+        ref = Database.database().reference()
+
+        //
         //initial view will display name
+        //
+        
         displayName()
         
+        //
         //creating done button to close keyboards
+        //
+        
         let toolBar = UIToolbar()
         toolBar.sizeToFit()
         
@@ -582,10 +386,18 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
         pickupDeliveryTF.isUserInteractionEnabled = false
 
 
+        if (cPickup)! {
+            addressTF.isUserInteractionEnabled = false
+            deliveryFeeTF.isUserInteractionEnabled = false
+        }
+        
+        
     }
     
-    
+    //
     //functions used to display respective labels and TF
+    //
+    
     func displayName()
     {
         nameLabel.isHidden = false
@@ -916,7 +728,10 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
         currentEditLabel.text = cRefund?.description
     }
     
+    //
     //MARK: Alert function
+    //
+    
     func createSimpleAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         let ok = UIAlertAction(title: "OK", style: .default, handler: nil)
@@ -924,6 +739,7 @@ class EditOrder_ViewController: UIViewController, UIPickerViewDelegate, UIPicker
         alert.addAction(ok)
         
         self.present(alert, animated: true, completion: nil)
+        
         
     }
     
