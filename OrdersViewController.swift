@@ -12,143 +12,166 @@ import FirebaseDatabase
 class OrdersViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate {
     
     //
-    // Declare variables used for a part of each order
+    // Button outlets
+    //
+    @IBOutlet weak var ordersHeader: UILabel!
+    
+    @IBOutlet weak var endOfDayButton: UIButton!
+    @IBOutlet weak var mainMenuButton: UIButton!
+    @IBOutlet weak var newOrderButton: UIButton!
+    @IBOutlet weak var statsButton: UIButton!
+    
+    //
+    // Boolean variables to determine which picker view to use
     //
     
-    var isPickup = true
-    var isCash = true
+    var showDeliveryPickupPicker = true
+    var showPickupVendorPicker = false
+    var showDeliveryVendorPicker = false
+    var showPricePicker = false
+    var showDeliveryFeePicker = false
+    var showCashCreditPicker = false
+
+
+    var showPickupVendors = true
     
     //
     // Create FirebaseDatabase reference
     //
     
     var ref:DatabaseReference!
+    var uid:String = ""
 
     //
-    // Text fields for order input
+    // - Two lists used for pickup/delivery vendors
+    // - One used for orders
+    // - EOD entity holds current day's values
     //
     
-    @IBOutlet weak var tf_CustomerName: UITextField!
-    @IBOutlet weak var tf_CustomerAddr: UITextField!
-    @IBOutlet weak var tf_Price: UITextField!
-    @IBOutlet weak var tf_Vendor: UITextField!
-    @IBOutlet weak var tf_Tip: UITextField!
-    @IBOutlet weak var tf_DeliveryFee: UITextField!
-    
-    //
-    // MARK: Picker View for vendors -- includes list and functions needed for picker view
-    //
-    
-    //
-    // Two lists used for pickup/delivery vendors
-    //
-    
+    let deliveryPickupOptions = ["Delivery","Pickup"]
+    let cashCreditOptions = ["Cash","Credit"]
+    let numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+    let deliveryFeeNumbers = ["0", "4", "6"]
     var pickupvendorslist = [newVendor]()
     var deliveryvendorslist = [newVendor]()
     var orderslist = [newOrder]()
+    var eodlist = [newEOD]()
+    
+    //
+    // Text field for new order name & address and setup functions
+    //
+    
+    var newNameTF: UITextField?
+    var newAddressTF: UITextField?
 
+    func nameTFSetup(textfield: UITextField!) {
+        newNameTF = textfield
+        newNameTF?.placeholder = "Name"
+    }
     
-    
-    @IBOutlet weak var pickupVendorPicker: UIPickerView!
-    @IBOutlet weak var deliveryVendorPicker: UIPickerView!
+    func addressTFSetup(textfield: UITextField!) {
+        newAddressTF = textfield
+        newAddressTF?.placeholder = "Address"
+    }
+
+    //
+    // PickerView functions
+    //
     
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
-        return 1
+        if showPricePicker {
+            return 6
+        } else {
+            return 1
+        }
     }
     
     //
-    // Returns string (vendor name) that will be displayed in the picker view
+    // Returns value that will be displayed in the picker view
     //
     
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        if pickerView == pickupVendorPicker {
-            if (pickupvendorslist.count > 0) {
-                return pickupvendorslist[row].getName()
+        if showDeliveryPickupPicker {
+            return deliveryPickupOptions[row]
+        } else if showPickupVendorPicker {
+            return pickupvendorslist[row].getName()
+        } else if showDeliveryVendorPicker {
+            return deliveryvendorslist[row].getName()
+        } else if showPricePicker {
+            if component == 3 {
+                return "."
+            } else {
+                return String(row)
             }
-        } else if pickerView == deliveryVendorPicker {
-            if (deliveryvendorslist.count > 0) {
-                return deliveryvendorslist[row].getName()
-            }
+        } else if showDeliveryFeePicker {
+            return deliveryFeeNumbers[row]
+        } else if showCashCreditPicker {
+            return cashCreditOptions[row]
         }
         
         return ""
-
-        
     }
     
     //
-    // Returns number of components inside of picker view
+    // Returns number of rows inside of picker view
     //
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        
-        if pickerView == pickupVendorPicker {
+        if showDeliveryPickupPicker || showCashCreditPicker {
+            return 2 // pickup/delivery or cash/credit
+        } else if showPickupVendorPicker {
             return pickupvendorslist.count
-            
-        } else if pickerView == deliveryVendorPicker {
+        } else if showDeliveryVendorPicker {
             return deliveryvendorslist.count
-            
-        } else {
-            
-            return 0
+        } else if showPricePicker {
+            if component == 3 {
+                return 1 // "."
+            } else {
+                return 10 // digits 0...9
+            }
+        } else if showDeliveryFeePicker {
+            return 3 // 0,4,6
         }
-
+        
+        return 0
     }
     
     //
-    // Depending on which row is selected, display it in the vendor text field
-    //
-    
-    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        if pickerView == pickupVendorPicker {
-            if (pickupvendorslist.count > 0) {
-                tf_Vendor.text = pickupvendorslist[row].getName()
-            }
-        } else if pickerView == deliveryVendorPicker {
-            if (deliveryvendorslist.count > 0) {
-                tf_Vendor.text = deliveryvendorslist[row].getName()
-            }
-        }
-
-    }
-    
-    
-    //
-    //MARK: Table View initialization and refresh control
+    // Table View initialization and functions
     //
     
     @IBOutlet weak var tableView: UITableView!
-    
-    var refresher: UIRefreshControl!
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return orderslist.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if (orderslist.count > 0) {
-            let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ViewControllerTableViewCell
-            
-            
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ViewControllerTableViewCell
+        let isIndexValid = self.orderslist.indices.contains(indexPath.row)
+        
+        //
+        // Check if index in list is valid, then display its values
+        // in the cell if it is valid, otherwise "nil"
+        //
+        
+        if (isIndexValid) {
             cell.orderName.text = orderslist[indexPath.row].getName()
             cell.orderVendor.text = orderslist[indexPath.row].getVendor()
-            let price = orderslist[indexPath.row].getPrice() - orderslist[indexPath.row].getRefund()
-            cell.orderPrice.text = price.description
+            let price = orderslist[indexPath.row].getPrice() + orderslist[indexPath.row].getTip() + orderslist[indexPath.row].getDeliveryFee()
             
-            if (orderslist[indexPath.row].getPickup())
-            {
+            cell.orderPrice.text = String(format: "%.2f", price)
+            
+            if (orderslist[indexPath.row].getPickup()) {
                 cell.orderPickupDelivery.text = "Pickup"
                 
-            }else{
+            } else {
                 cell.orderPickupDelivery.text = "Delivery"
             }
- 
-
+            
+            
             return cell
-                
         }
-        
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ViewControllerTableViewCell
         
         cell.orderName.text = "nil"
         cell.orderVendor.text = "nil"
@@ -158,249 +181,545 @@ class OrdersViewController: UIViewController, UIPickerViewDelegate, UIPickerView
         return cell
     }
     
+    //
+    // Deselects cell in table view after it is tapped
+    //
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath as IndexPath, animated: true)
     }
     
    
+    //
+    // If we delete a cell, we need to update our vendors and refresh
+    //
+    
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if (editingStyle == UITableViewCellEditingStyle.delete)
-        {
-            ref.child("orders").child(orderslist[indexPath.row].getName()).removeValue()
+        if (editingStyle == UITableViewCellEditingStyle.delete) {
+            let ordername = self.orderslist[indexPath.row].getName()
             
-            print("removing " + orderslist[indexPath.row].getName())
-
-            getOrders()
-     
-        }
-    }
-
-    //
-    // MARK: Segmented Control - pickup/delivery & cash/credit options
-    //
-    
-    @IBOutlet weak var pickupdeliverySeg: UISegmentedControl!
-    @IBOutlet weak var cashcreditSeg: UISegmentedControl!
-
-    //
-    // $4 or $6 delivery fee -- easier than typing
-    //
-    @IBOutlet weak var delivFeeSegControl: UISegmentedControl!
-    
-    //
-    //pickup/delivery
-    //
-    
-    @IBAction func pickupdelivery(_ sender: Any) {
-        
-        switch pickupdeliverySeg.selectedSegmentIndex {
+            let alert = UIAlertController(title: "Confirm Deletion", message: "Really delete '" + ordername + "'?", preferredStyle: .alert)
+            let vc = UIViewController()
+            vc.preferredContentSize = CGSize(width: 250,height: 30)
             
-        case 0:
-            displayForPickup()
-            break
-        case 1:
-            displayForDelivery()
-            break
-        default:
-            break
-        }
-    }
-    
-    @IBAction func changeDeliveryFee(_ sender: Any) {
-        
-        switch delivFeeSegControl.selectedSegmentIndex {
-        case 0:
-            tf_DeliveryFee.text = "0"
-            break
-        case 1:
-            tf_DeliveryFee.text = "4"
-            break
-        case 2:
-            tf_DeliveryFee.text = "6"
-            break
-        default:
-            break
-        }
-    }
-    
-    //
-    // functions used to show and hide labels, tf, etc.
-    //
-    
-    func displayForPickup()
-    {
-        isPickup = true;
-        tf_CustomerAddr.isUserInteractionEnabled = false
-        tf_DeliveryFee.isUserInteractionEnabled = false
-        delivFeeSegControl.isUserInteractionEnabled = false
-        tf_Vendor.isUserInteractionEnabled = false
-        tf_Vendor.text = ""
-        tf_CustomerAddr.text = "Pickup"
-        tf_DeliveryFee.text = "0"
-        pickupVendorPicker.isHidden = false
-        deliveryVendorPicker.isHidden = true
-        delivFeeSegControl.selectedSegmentIndex = 0
-
-    }
-    
-    func displayForDelivery() {
-        isPickup = false;
-        tf_CustomerAddr.isUserInteractionEnabled = true
-        delivFeeSegControl.isUserInteractionEnabled = true
-        tf_Vendor.isUserInteractionEnabled = false
-        tf_Vendor.text = ""
-        tf_CustomerAddr.text = ""
-        tf_DeliveryFee.text = "0"
-        pickupVendorPicker.isHidden = true
-        deliveryVendorPicker.isHidden = false
-        tf_DeliveryFee.isUserInteractionEnabled = false
-        delivFeeSegControl.selectedSegmentIndex = 0
-        
-    }
-    
-    //
-    // used to change cash variable
-    //
-    
-    func changeIsCash(cash:Bool)
-    {
-        isCash = cash
-    }
-    
-    
-    //
-    // cash/credit
-    //
-    
-    @IBAction func cashcredit(_ sender: Any) {
-        
-        switch cashcreditSeg.selectedSegmentIndex {
+            alert.setValue(vc, forKey: "contentViewController")
             
-        case 0:
-            changeIsCash(cash: true)
-        case 1:
-            changeIsCash(cash: false)
-
-        default:
-            break
+            let ok = UIAlertAction(title: "Confirm", style: .default, handler: { (action: UIAlertAction) -> Void in
+                self.ref.child("orders").child(self.orderslist[indexPath.row].getID()).removeValue()
+                self.zeroOutVendorData()
+                self.getOrders()
+            })
+            
+            let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+            alert.addAction(cancel)
+            alert.addAction(ok)
+            
+            self.present(alert, animated: true, completion: nil)
         }
+    }
+    
+  
+    //
+    // Add order via UIAlert
+    //
+    // This function sparks a series of other UIAlert functions
+    // that allow the user to populate order data fields. The fields
+    // are slightly different for pickup and delivery orders.
+    //
+    
+    func addOrderViaAlert() {
+        self.showDeliveryPickupPicker = true
+        self.showPickupVendorPicker = false
+        self.showDeliveryVendorPicker = false
+        self.showPricePicker = false
 
+        let vc = UIViewController()
+        vc.preferredContentSize = CGSize(width: 250,height: 30)
+        
+        let alert = UIAlertController(title: "Pickup or Delivery", message: "", preferredStyle: .alert)
+        alert.setValue(vc, forKey: "contentViewController")
+        
+        let pickupButton = UIAlertAction(title: "Pickup", style: .default, handler: { (action: UIAlertAction) -> Void in
+            
+            // User chose pickup, so display pickup vendors in next alert
+            self.showPickupVendorPicker = true
+            self.showDeliveryVendorPicker = false
+            self.showPickupVendors = true
+            self.createAlertChooseVendor()
+
+        })
+        
+        let deliveryButton = UIAlertAction(title: "Delivery", style: .default, handler: { (action: UIAlertAction) -> Void in
+            
+            // User chose delivery, so display delivery vendors in next alert
+            self.showPickupVendorPicker = false
+            self.showDeliveryVendorPicker = true
+            self.showPickupVendors = false
+            self.createAlertChooseVendor()
+            
+        })
+        
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        alert.addAction(pickupButton)
+        alert.addAction(deliveryButton)
+        self.present(alert, animated: true)
+    }
+    
+    //
+    // Creates UIAlert that allows user to fill in vendor data
+    //
+    
+    func createAlertChooseVendor() {
+        let order = newOrder()
+
+        self.showDeliveryPickupPicker = false
+        self.showPricePicker = false
+
+        let vc = UIViewController()
+        vc.preferredContentSize = CGSize(width: 250,height: 150)
+        let vendorPicker = UIPickerView(frame: CGRect(x: 0, y: 0, width: 250, height: 150))
+        
+        vendorPicker.delegate = self
+        vendorPicker.dataSource = self
+        
+        vc.view.addSubview(vendorPicker)
+        
+        let alert = UIAlertController(title: "Choose Vendor", message: "", preferredStyle: .alert)
+        alert.setValue(vc, forKey: "contentViewController")
+        
+        var list = [newVendor]()
+        
+        if showPickupVendors {
+            list = pickupvendorslist
+            order.setPickup(PICKUP: true)
+        } else {
+            list = deliveryvendorslist
+            order.setPickup(PICKUP: false)
+        }
+        
+        let next = UIAlertAction(title: "Next", style: .default, handler: { (action: UIAlertAction) -> Void in
+            
+            //
+            // Get user's choice and move to next alert (choosing vendor)
+            //
+            // currentRow = vendor name
+            //
+            
+            let vendorName = list[vendorPicker.selectedRow(inComponent: 0)].getName()
+            
+            order.setVendor(VENDOR: vendorName)
+            
+            // Change price picker boolean before calling function
+            
+            self.showDeliveryVendorPicker = false
+            self.showPickupVendorPicker = false
+            self.showPricePicker = true
+
+            self.createAlertChoosePrice(order: order)
+            
+        })
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        alert.addAction(next)
+        self.present(alert, animated: true)
+    }
+
+    //
+    // Creates UIAlert that allows user to fill in price data
+    //
+    
+    func createAlertChoosePrice(order: newOrder) {
+        
+        let vc = UIViewController()
+        vc.preferredContentSize = CGSize(width: 250,height: 90)
+        let pricePicker = UIPickerView(frame: CGRect(x: 0, y: 0, width: 250, height: 90))
+        
+        pricePicker.delegate = self
+        pricePicker.dataSource = self
+        
+        vc.view.addSubview(pricePicker)
+        
+        let alert = UIAlertController(title: "Choose Price", message: "", preferredStyle: .alert)
+        alert.setValue(vc, forKey: "contentViewController")
+
+        
+        let next = UIAlertAction(title: "Next", style: .default, handler: { (action: UIAlertAction) -> Void in
+            
+            //
+            // Get user's choice and move to next alert (choosing vendor)
+            //
+            
+            let val1 = self.numbers[pricePicker.selectedRow(inComponent: 0)]
+            let val2 = self.numbers[pricePicker.selectedRow(inComponent: 1)]
+            let val3 = self.numbers[pricePicker.selectedRow(inComponent: 2)]
+            let val4 = self.numbers[pricePicker.selectedRow(inComponent: 4)]
+            let val5 = self.numbers[pricePicker.selectedRow(inComponent: 5)]
+
+            let currentPriceString = "\(val1)\(val2)\(val3).\(val4)\(val5)"
+            let currentPriceDouble = Double(currentPriceString)
+            
+            order.setPrice(PRICE: currentPriceDouble!)
+            
+            //
+            // Tip alert is next
+            //
+            
+            self.createAlertChooseTip(order: order)
+            
+        })
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        alert.addAction(next)
+        self.present(alert, animated: true)
+    }
+    
+    //
+    // Creates UIAlert that allows user to fill in tip data
+    //
+    
+    func createAlertChooseTip(order: newOrder) {
+        
+        if !self.showPickupVendors {
+            self.showPricePicker = true
+        }
+        
+        let vc = UIViewController()
+        vc.preferredContentSize = CGSize(width: 250,height: 90)
+        let tipPicker = UIPickerView(frame: CGRect(x: 0, y: 0, width: 250, height: 90))
+        
+        tipPicker.delegate = self
+        tipPicker.dataSource = self
+        
+        vc.view.addSubview(tipPicker)
+        
+        let alert = UIAlertController(title: "Choose Tip", message: "", preferredStyle: .alert)
+        alert.setValue(vc, forKey: "contentViewController")
+        
+        
+        let next = UIAlertAction(title: "Next", style: .default, handler: { (action: UIAlertAction) -> Void in
+            
+            //
+            // Get user's choice and move to next alert (choosing vendor)
+            //
+            
+            let val1 = self.numbers[tipPicker.selectedRow(inComponent: 0)]
+            let val2 = self.numbers[tipPicker.selectedRow(inComponent: 1)]
+            let val3 = self.numbers[tipPicker.selectedRow(inComponent: 2)]
+            let val4 = self.numbers[tipPicker.selectedRow(inComponent: 4)]
+            let val5 = self.numbers[tipPicker.selectedRow(inComponent: 5)]
+            
+            let currentTipString = "\(val1)\(val2)\(val3).\(val4)\(val5)"
+            let currentTipDouble = Double(currentTipString)
+            
+            order.setTip(TIP: currentTipDouble!)
+            
+            //
+            // DF or name alert is next depending
+            // if adding a delivery or pickup order
+            //
+            
+            if self.showPickupVendors {
+                // Show name alert
+                self.showPricePicker = false
+                self.showDeliveryFeePicker = false
+
+                self.createAlertChooseName(order: order)
+                
+            } else {
+                // Show delivery fee alert, then name alert
+                self.showPricePicker = false
+                self.showDeliveryFeePicker = true
+                
+                self.createAlertChooseDeliveryFee(order: order)
+            }
+            
+            
+        })
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        alert.addAction(next)
+        self.present(alert, animated: true)
+    }
+    
+    //
+    // Creates UIAlert that allows user to fill in delivery fee data
+    //
+    
+    func createAlertChooseDeliveryFee(order: newOrder) {
+        
+        if !self.showPickupVendors {
+            self.showDeliveryFeePicker = true
+        }
+        
+        self.showCashCreditPicker = false
+
+        
+        let vc = UIViewController()
+        vc.preferredContentSize = CGSize(width: 250,height: 75)
+        let deliveryFeePicker = UIPickerView(frame: CGRect(x: 0, y: 0, width: 250, height: 75))
+        
+        deliveryFeePicker.delegate = self
+        deliveryFeePicker.dataSource = self
+        
+        vc.view.addSubview(deliveryFeePicker)
+        
+        let alert = UIAlertController(title: "Choose Delivery Fee", message: "", preferredStyle: .alert)
+        alert.setValue(vc, forKey: "contentViewController")
+        
+        
+        let next = UIAlertAction(title: "Next", style: .default, handler: { (action: UIAlertAction) -> Void in
+            
+            //
+            // Get user's choice and move to next alert (choosing vendor)
+            //
+            
+            let deliveryFee = Double(self.deliveryFeeNumbers[deliveryFeePicker.selectedRow(inComponent: 0)])
+            
+            order.setDeliveryFee(DFEE: deliveryFee!)
+            
+            // Address alert is next
+            self.createAlertChooseAddress(order: order)
+            
+        })
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        alert.addAction(next)
+        self.present(alert, animated: true)
+    }
+    
+    //
+    // Creates UIAlert that allows user to fill in address data
+    //
+    
+    func createAlertChooseAddress(order: newOrder) {
+        
+        let alert = UIAlertController(title: "Choose Address", message: "", preferredStyle: .alert)
+        
+        alert.addTextField(configurationHandler: addressTFSetup)
+        
+        let ok = UIAlertAction(title: "Next", style: .default, handler: { (action: UIAlertAction) -> Void in
+            
+            guard let address = self.newAddressTF?.text! else {
+                self.createAlert(title: "Check input", message: "")
+                return
+            }
+            
+            //
+            // Checks for arbitrary amount of spaces
+            //
+            
+            let tempAddress = address.trimmingCharacters(in: .whitespaces)
+            
+            
+            if tempAddress != "" {
+                //
+                // Create confirmation alert before adding to database
+                //
+                
+                order.setAddress(ADDRESS: address)
+                self.createAlertChooseName(order: order)
+            } else {
+                self.createAlertChooseAddress(order: order)
+            }
+            
+            
+            
+            
+            
+        })
+        
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        alert.addAction(cancel)
+        
+        alert.addAction(ok)
+        
+        self.present(alert, animated: true, completion: nil)
+        
+    }
+    
+    //
+    // Creates UIAlert that allows user to fill in name data
+    //
+    
+    func createAlertChooseName(order: newOrder) {
+        
+        let alert = UIAlertController(title: "Choose Name", message: "", preferredStyle: .alert)
+        
+        alert.addTextField(configurationHandler: nameTFSetup)
+
+        
+        let ok = UIAlertAction(title: "Next", style: .default, handler: { (action: UIAlertAction) -> Void in
+            
+            guard var name = self.newNameTF?.text! else {
+                self.createAlert(title: "Check input", message: "")
+                return
+            }
+            
+            //
+            // Checks for arbitrary amount of spaces
+            //
+            
+            let tempName = name.trimmingCharacters(in: .whitespaces)
+            
+            
+            if tempName != "" {
+                //
+                // Create confirmation alert before adding to database
+                //
+                
+                name = name.capitalizeFirstLetter()
+                
+                order.setName(NAME: name)
+                self.showDeliveryFeePicker = false
+                self.showCashCreditPicker = true
+                self.createAlertChooseCashCredit(order: order)
+            } else {
+                self.createAlertChooseName(order: order)
+            }
+   
+            
+        })
+        
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        alert.addAction(cancel)
+        
+        alert.addAction(ok)
+        
+        self.present(alert, animated: true, completion: nil)
+        
+    }
+    
+    func createAlertChooseCashCredit(order: newOrder) {
+        
+        let vc = UIViewController()
+        vc.preferredContentSize = CGSize(width: 250,height: 75)
+        
+        let alert = UIAlertController(title: "Cash or Credit", message: "", preferredStyle: .alert)
+        alert.setValue(vc, forKey: "contentViewController")
+        
+        let creditButton = UIAlertAction(title: "Credit", style: .default, handler: { (action: UIAlertAction) -> Void in
+
+            order.setCash(CASH: false)
+
+            self.createAlertConfirmOrder(order: order)
+            
+        })
+        
+        let cashButton = UIAlertAction(title: "Cash", style: .default, handler: { (action: UIAlertAction) -> Void in
+            
+            order.setCash(CASH: true)
+
+            self.createAlertConfirmOrder(order: order)
+            
+        })
+        
+        alert.addAction(cashButton)
+        alert.addAction(creditButton)
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        self.present(alert, animated: true)
     }
     
     
+    //
+    // Creates an alert to confirm order before adding to database
+    //
     
-    //
-    // MARK: UIAlert functions
-    //
-    func createAlert(title: String, message: String) {
+    func createAlertConfirmOrder(order: newOrder) {
+        var message = ""
         
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        let cancel = UIAlertAction(title: "OK", style: .cancel, handler: nil)
+        //
+        // If pickup, dont show delivery fee in confirm (i.e. message doesn't include df)
+        //
         
+        if order.getPickup() {
+            message = "Name: " + order.getName() + "\n" + "Type: " + order.getPickupDeliveryString() + "\n" + "Price: " + String(format: "%.2f", order.getPrice()) + "\n" + "Tip: " + String(format: "%.2f", order.getTip()) + "\n" + "Pay by: " + order.getCashCreditString() + "\n" + "Vendor: " + order.getVendor()
+
+        } else {
+            message = "Name: " + order.getName() + "\n" + "Type: " + order.getPickupDeliveryString() + "\n" + "Price: " + String(format: "%.2f", order.getPrice()) + "\n" + "Tip: " + String(format: "%.2f", order.getTip()) + "\n" + "Delivery Fee: " + String(format: "%.2f", order.getDeliveryFee()) + "\n" + "Address: " + order.getAddress() + "\n" + "Pay by: " + order.getCashCreditString() + "\n" + "Vendor: " + order.getVendor()
+            
+        }
+        
+        let alert = UIAlertController(title: "Confirm", message: message, preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: "Add", style: .default, handler: { (action) in
+            let idRef = self.ref.child("orders").childByAutoId()
+            let id = idRef.key
+
+            order.setID(ID: id)
+            
+            let orderInfo = [
+                "name":         order.getName(),
+                "price":        order.getPrice(),
+                "address":      order.getAddress(),
+                "vendor":       order.getVendor(),
+                "notes":        order.getNotes(),
+                "delivery fee": order.getDeliveryFee(),
+                "tip":          order.getTip(),
+                "cash":         order.getCash(),
+                "refund":       order.getRefund(),
+                "pickup":       order.getPickup(),
+                "id":           order.getID()
+                ] as [String : Any]
+            
+            
+            self.ref.child("orders").child(order.getID()).setValue(orderInfo)
+            
+            self.getOrders()
+            self.zeroOutVendorData()
+            
+            //
+            // Refresh Tableview
+            //
+            
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+            }
+            
+        }))
+        
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
         alert.addAction(cancel)
         
         self.present(alert, animated: true, completion: nil)
         
     }
     
-    
-
     //
-    //MARK: Add order to FirebaseDatabase
+    // Creates an alert with only text
     //
     
-    @IBAction func addOrder(_ sender: Any) {
-
-        guard let orderName = self.tf_CustomerName.text, let orderAddress = self.tf_CustomerAddr.text, let orderVendor = self.tf_Vendor.text, let orderPrice = Double(self.tf_Price.text!), let orderTip = Double(self.tf_Tip.text!), let orderDelivFee = Double(self.tf_DeliveryFee.text!) else {
-            
-            createAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
-            return
-        }
+    func createAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { (action) in alert.dismiss(animated: true, completion: nil)
+        }))
         
-        let theOrder = newOrder(NAME: orderName, ADDRESS: orderAddress, VENDOR: orderVendor, PRICE: orderPrice, TIP: orderTip, DELIVFEE: orderDelivFee, PICKUP: isPickup, CASH: isCash, REFUND: 0.0, NOTES: "No notes have been written for this order.")
-            
-        var pickupText = ""
-        var cashText = ""
-            
+        self.present(alert, animated: true, completion: nil)
         
-        if isPickup {
-            pickupText = "Pickup"
-        } else {
-            pickupText = "Delivery"
-        }
-            
-        if isCash {
-            cashText = "Cash"
-        } else {
-            cashText = "Credit"
-        }
-        
-            
-            
-        let alertMessage = "Name: \(orderName)\n Address: \(orderAddress)\n Vendor: \(orderVendor)\n Price: \(orderPrice)\n Tip: \(orderTip)\n Delivery Fee: \(orderDelivFee)\n \(cashText) \(pickupText) \n"
-        createAlert(title: "Order Added", message: alertMessage)
-        
-        let orderInfo = [
-            "name":         theOrder.getName(),
-            "price":        theOrder.getPrice(),
-            "address":      theOrder.getAddress(),
-            "vendor":       theOrder.getVendor(),
-            "notes":        theOrder.getNotes(),
-            "delivery fee": theOrder.getDeliveryFee(),
-            "tip":          theOrder.getTip(),
-            "cash":         theOrder.getCash(),
-            "refund":       theOrder.getRefund(),
-            "pickup":       theOrder.getPickup()
-            ] as [String : Any]
-        
-        self.ref.child("orders").child(theOrder.getName()).setValue(orderInfo)
-        
-        displayAfterOrderAdded()
-        
-        //
-        // Refresh Tableview
-        //
-        
-        DispatchQueue.main.async {
-            self.tableView.reloadData()
-        }
-    } //end addOrder
-
-    func displayAfterOrderAdded() {
-        self.tf_CustomerName.text = ""
-        
-        if (self.pickupdeliverySeg.selectedSegmentIndex == 0) {
-            
-            self.tf_CustomerAddr.text = "Pickup"
-            
-        } else {
-            
-            self.tf_CustomerAddr.text = ""
-            
-        }
-        
-        self.tf_Vendor.text = ""
-        self.tf_Price.text = ""
-        self.tf_Tip.text = "0"
-        self.tf_DeliveryFee.text = "0"
-        self.delivFeeSegControl.selectedSegmentIndex = 0
-        
-        getOrders()
-
     }
     
     //
-    //MARK: Segues
+    // Adds a new order via a series of UIAlerts
     //
     
-    @IBAction func endofday(_ sender: Any) {
-
+    @IBAction func addNewOrder(_ sender: Any) {
+        addOrderViaAlert()
     }
+    
+    
+
+    //
+    // Get updated version of orders every time we
+    // come back to this view
+    //
     
     @IBAction func unwindToOrdersView(segue: UIStoryboardSegue) {
-        
-
+        zeroOutVendorData()
+        getOrders()
     }
     
     //
@@ -408,28 +727,78 @@ class OrdersViewController: UIViewController, UIPickerViewDelegate, UIPickerView
     //
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if (segue.identifier == "detailseg")
-        {
+        if (segue.identifier == "detailseg") {
             if let indexPath = tableView.indexPathForSelectedRow {
                 
-                let destVC = segue.destination as! Cell_ViewController
-                
+                let destVC = segue.destination as! CellViewController
+                destVC.uid = uid
+
                 for o in self.orderslist {
                     destVC.orderslist.append(o)
-                    print(o.getDeliveryFee())
                 }
                 
                 destVC.orderIndex = indexPath.row
                 
             } // end indexPath -- should not ever be null -- however gets information for selected cell
-        } //end detailseg option
+        } else if (segue.identifier == "statseg") {
+            
+            //
+            // Pre populate three candidate arrays used in stat view
+            //
+            
+            let destVC = segue.destination as! StatsViewController
+            destVC.uid = uid
+
+            for o in self.orderslist {
+                if (!o.getPickup()) {
+                    destVC.deliveryorderslist.append(o)
+                }
+            }
+            
+            for v in self.deliveryvendorslist {
+                destVC.deliveryvendorslist.append(v)
+            }
+            
+            for v in self.pickupvendorslist {
+                destVC.pickupvendorslist.append(v)
+            }
+            
+    
+            
+        } else if (segue.identifier == "eodseg") {
+            let destVC = segue.destination as! EndOfDayViewController
+            destVC.uid = uid
+
+            for e in self.eodlist {
+                destVC.eodlist.append(e)
+            }
+            
+            for o in self.orderslist {
+                if (!o.getPickup()) {
+                    destVC.deliveryorderslist.append(o)
+                }
+            }
+            
+            for v in self.deliveryvendorslist {
+                destVC.deliveryvendorslist.append(v)
+            }
+            
+            for v in self.pickupvendorslist {
+                destVC.pickupvendorslist.append(v)
+            }
+            
+        }
+        
     } //end prepareforseg
     
+    //
+    // Grabs order entries from database and stores in list
+    //
     
     func getOrders() {
         
         self.orderslist.removeAll()
-        
+                
         ref.child("orders").observe(.childAdded, with: { (snapshot) in
             if let dictionary = snapshot.value as? [String : AnyObject] {
                 
@@ -445,17 +814,22 @@ class OrdersViewController: UIViewController, UIPickerViewDelegate, UIPickerView
                 order.refund = dictionary["refund"] as? Double
                 order.pickup = dictionary["pickup"] as! Bool
                 order.cash = dictionary["cash"] as! Bool
+                order.id = dictionary["id"] as? String
+
                 
                 var beenAdded = false
                 
                 for o in self.orderslist {
-                    if (o.getName() == order.getName() && o.getPrice() == order.getPrice() && o.getVendor() == order.getVendor()) {
+                    if (o.getID() == order.getID()) {
                         beenAdded = true
                     }
                 }
                 
                 if (!beenAdded) {
+                    self.separateVendorData(o: order)
                     self.orderslist.append(order)
+
+                    
                 }
                 //
                 // Refresh Tableview
@@ -476,7 +850,209 @@ class OrdersViewController: UIViewController, UIPickerViewDelegate, UIPickerView
         DispatchQueue.main.async {
             self.tableView.reloadData()
         }
+        
+        
     }
+    
+    //
+    // Zeros out vendor lists and total for vendors in database
+    //
+    
+    func zeroOutVendorData() {
+        
+        
+        for v in self.pickupvendorslist {
+            
+            v.setCredit(CREDIT: 0.0)
+            v.setCash(CASH: 0.0)
+            v.setNum(NUM: 0)
+            v.setTotal(TOTAL: 0.0)
+            v.setRefund(REFUND: 0.0)
+            
+        }
+        
+        for v in self.deliveryvendorslist {
+            v.setCredit(CREDIT: 0.0)
+            v.setCash(CASH: 0.0)
+            v.setNum(NUM: 0)
+            v.setTotal(TOTAL: 0.0)
+            v.setRefund(REFUND: 0.0)
+        }
+        //
+        // First part is zeroing out pickup vendors
+        //
+        
+        ref.child("vendors").child("pickup vendors").observe(.childAdded, with: { (snapshot) in
+            if let dictionary = snapshot.value as? [String : AnyObject] {
+                
+                let vendorName = dictionary["name"] as? String
+
+                let vendorInfo = [
+                    "cash":    0.0,
+                    "credit":  0.0,
+                    "total":   0.0,
+                    "num":     0,
+                    "refund":  0.0
+                    ] as [String : Any]
+                self.ref.child("vendors").child("pickup vendors").child(vendorName!).updateChildValues(vendorInfo)
+                
+            }
+        })
+        
+        ref.child("vendors").child("delivery vendors").observe(.childAdded, with: { (snapshot) in
+            if let dictionary = snapshot.value as? [String : AnyObject] {
+                
+                let vendorName = dictionary["name"] as? String
+                
+                let vendorInfo = [
+                    "cash":    0.0,
+                    "credit":  0.0,
+                    "total":   0.0,
+                    "num":     0,
+                    "refund":  0.0
+                    ] as [String : Any]
+                
+                self.ref.child("vendors").child("delivery vendors").child(vendorName!).updateChildValues(vendorInfo)
+                
+            }
+        })
+    
+    
+    } //end zeroOutVendors()
+    
+    //
+    // Get order vendor name then determine which vendor
+    // the order belonds to. Then, update that vendors
+    // stats in database -- used in StatsViewController
+    //
+    
+    func separateVendorData(o:newOrder) {
+        
+        if (o.getPickup()) {
+            
+            //
+            // Order is a pickup, so get pickup vendors
+            //
+            
+            for v in self.pickupvendorslist {
+                
+                if (o.getVendor() == v.getName()) {
+                    
+                    //
+                    // Found the vendor, determine if cash/credit,
+                    // then update
+                    //
+                    
+                    ref.child("vendors").child("pickup vendors").child(v.getName()).observeSingleEvent(of: .value, with: { (snapshot) in
+                        
+ 
+                        
+                        var newCash = v.getCash()
+                        var newCredit = v.getCredit()
+                        var newTotal = v.getTotal()
+                        var newNum = v.getNum()
+                        var newRefund = v.getRefund()
+           
+                        
+                        
+                        newTotal += o.getPrice()
+                        newNum += 1
+                        newRefund += o.getRefund()
+                        
+                        
+                        
+                        if (o.getCash()) {
+                            newCash += o.getPrice()
+                        } else {
+                            newCredit += o.getPrice()
+                        }
+
+                        let vendorInfo = [
+                            "cash":    newCash,
+                            "credit":  newCredit,
+                            "total":   newTotal,
+                            "num":     newNum,
+                            "refund":  newRefund
+                            ] as [String : Any]
+
+                        self.ref.child("vendors").child("pickup vendors").child(v.getName()).updateChildValues(vendorInfo)
+                        
+                        v.setCash(CASH: newCash)
+                        v.setCredit(CREDIT: newCredit)
+                        v.setTotal(TOTAL: newTotal)
+                        v.setNum(NUM: newNum)
+                        v.setRefund(REFUND: newRefund)
+                        
+                    })
+                    
+                } //end match vendor to order
+                
+            }
+            
+        } else {
+            
+            //
+            // Order is a delivery, so get delivery vendors
+            //
+            
+            for v in self.deliveryvendorslist {
+                
+                //
+                // Found the vendor, update
+                //
+                if (o.getVendor() == v.getName()) {
+                    //
+                    // Found the vendor, determine if cash/credit,
+                    // then update
+                    //
+                    
+                    ref.child("vendors").child("delivery vendors").child(v.getName()).observeSingleEvent(of: .value, with: { (snapshot) in
+                        
+
+                        var newCash = v.getCash()
+                        var newCredit = v.getCredit()
+                        var newTotal = v.getTotal()
+                        var newNum = v.getNum()
+                        var newRefund = v.getRefund()
+                        
+                        
+                        
+                        newTotal += o.getPrice()
+                        newNum += 1
+                        newRefund += o.getRefund()
+                        
+                        
+                        
+                        if (o.getCash()) {
+                            newCash += o.getPrice()
+                        } else {
+                            newCredit += o.getPrice()
+                        }
+                        
+                        let vendorInfo = [
+                            "cash":    newCash,
+                            "credit":  newCredit,
+                            "total":   newTotal,
+                            "num":     newNum,
+                            "refund":  newRefund
+                            ] as [String : Any]
+                        
+
+                        
+                        self.ref.child("vendors").child("delivery vendors").child(v.getName()).updateChildValues(vendorInfo)
+                        
+                        v.setCash(CASH: newCash)
+                        v.setCredit(CREDIT: newCredit)
+                        v.setTotal(TOTAL: newTotal)
+                        v.setNum(NUM: newNum)
+                        v.setRefund(REFUND: newRefund)
+                    
+                    
+                    }) //end dictionary
+                } //end match vendor to order
+            } //end deliveryvendor for loop
+        } //end else
+    } //end separateVendorData()
 
     //
     // used to dismiss keyboards
@@ -486,6 +1062,56 @@ class OrdersViewController: UIViewController, UIPickerViewDelegate, UIPickerView
         view.endEditing(true)
     }
     
+    func initView() {
+        newOrderButton.layer.cornerRadius = 10
+        newOrderButton.layer.masksToBounds = true
+        newOrderButton.layer.borderColor = UIColor.black.cgColor
+        newOrderButton.layer.borderWidth = 0.5
+        newOrderButton.layer.shadowColor = UIColor.black.cgColor
+        newOrderButton.layer.shadowOffset = CGSize.zero
+        newOrderButton.layer.shadowRadius = 5.0
+        newOrderButton.layer.shadowOpacity = 0.5
+        newOrderButton.clipsToBounds = false
+        
+        statsButton.layer.cornerRadius = 10
+        statsButton.layer.masksToBounds = true
+        statsButton.layer.borderColor = UIColor.black.cgColor
+        statsButton.layer.borderWidth = 0.5
+        statsButton.layer.shadowColor = UIColor.black.cgColor
+        statsButton.layer.shadowOffset = CGSize.zero
+        statsButton.layer.shadowRadius = 5.0
+        statsButton.layer.shadowOpacity = 0.5
+        statsButton.clipsToBounds = false
+        
+        endOfDayButton.layer.cornerRadius = 10
+        endOfDayButton.layer.masksToBounds = true
+        endOfDayButton.layer.borderColor = UIColor.black.cgColor
+        endOfDayButton.layer.borderWidth = 0.5
+        endOfDayButton.layer.shadowColor = UIColor.black.cgColor
+        endOfDayButton.layer.shadowOffset = CGSize.zero
+        endOfDayButton.layer.shadowRadius = 5.0
+        endOfDayButton.layer.shadowOpacity = 0.5
+        endOfDayButton.clipsToBounds = false
+        
+        mainMenuButton.layer.cornerRadius = 10
+        mainMenuButton.layer.masksToBounds = true
+        mainMenuButton.layer.borderColor = UIColor.black.cgColor
+        mainMenuButton.layer.borderWidth = 0.5
+        mainMenuButton.layer.shadowColor = UIColor.black.cgColor
+        mainMenuButton.layer.shadowOffset = CGSize.zero
+        mainMenuButton.layer.shadowRadius = 5.0
+        mainMenuButton.layer.shadowOpacity = 0.5
+        mainMenuButton.clipsToBounds = false
+        
+        let strokeTextAttributes: [NSAttributedStringKey : Any] = [
+            NSAttributedStringKey.strokeColor : UIColor.black,
+            NSAttributedStringKey.foregroundColor : UIColor.white,
+            NSAttributedStringKey.strokeWidth : -2.0,
+            ]
+        
+        ordersHeader.attributedText = NSAttributedString(string: "Orders", attributes: strokeTextAttributes)
+        
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -495,41 +1121,27 @@ class OrdersViewController: UIViewController, UIPickerViewDelegate, UIPickerView
         // orders from FirebaseDatabase inside of table view
         //
         
-        ref = Database.database().reference()
+        ref = Database.database().reference().child("users").child(uid)
 
+        initView()
         //
         // initially display view for pickup
         //
         
-        displayForPickup()
-        
         getOrders()
-        
       
         //
-        //creating done button to close keyboards
+        // creating done button to close keyboards
         //
         
-        let toolBar = UIToolbar()
+       /* let toolBar = UIToolbar()
         toolBar.sizeToFit()
         
         let doneButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.done, target: self, action: #selector(self.doneClicked))
         
         toolBar.setItems([doneButton], animated: false)
-        
-        //
-        // adding done button to keyboards
-        //
-        
-        tf_CustomerName.inputAccessoryView = toolBar
-        tf_Price.inputAccessoryView = toolBar
-        tf_Tip.inputAccessoryView = toolBar
-        tf_DeliveryFee.inputAccessoryView = toolBar
-        tf_CustomerAddr.inputAccessoryView = toolBar
-        
-        tf_Price.keyboardType = UIKeyboardType.decimalPad
-        tf_Tip.keyboardType = UIKeyboardType.decimalPad
-        
+        */
+
 
     }
 

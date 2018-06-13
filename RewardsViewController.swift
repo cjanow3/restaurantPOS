@@ -202,7 +202,7 @@ class RewardsViewController: UIViewController, UITableViewDelegate, UITableViewD
         
         let ok = UIAlertAction(title: "Add", style: .default, handler: { (action: UIAlertAction) -> Void in
             
-            guard let name = self.nameTF?.text!, let phoneNum = self.phoneNumTF?.text else {
+            guard var name = self.nameTF?.text!, let phoneNum = self.phoneNumTF?.text else {
                 self.createSimpleAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
                 return
             }
@@ -245,6 +245,8 @@ class RewardsViewController: UIViewController, UITableViewDelegate, UITableViewD
                     //
                     // Save real number to temp user
                     //
+                    
+                    name = name.capitalizeFirstLetter()
                     
                     let tempUser = newRewardUser(NAME: name, PHONENUM: finalNumber, POINTS: 0, ID: id)
                     

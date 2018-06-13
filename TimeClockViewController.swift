@@ -97,6 +97,10 @@ class TimeClockViewController: UIViewController,UITableViewDelegate,UITableViewD
                     self.employeelist.append(employee)
                 }
                 
+                // sort employees alphabetically for convenience
+                self.employeelist.sort(by: {$0.getName() < $1.getName()})
+
+                
                 //
                 // Refresh Tableview
                 //
@@ -108,6 +112,8 @@ class TimeClockViewController: UIViewController,UITableViewDelegate,UITableViewD
             } //end dictionary
             
         })
+
+
         
         //
         // Refresh Tableview
@@ -162,9 +168,7 @@ class TimeClockViewController: UIViewController,UITableViewDelegate,UITableViewD
             let inputPassword = alert.textFields?[0].text
             
             if (inputPassword != "0000") {
-                
                 self.createSimpleAlert(title: "Incorrect", message: "Try again.")
-                
             }
                 
             else {
@@ -210,7 +214,7 @@ class TimeClockViewController: UIViewController,UITableViewDelegate,UITableViewD
 
         let ok = UIAlertAction(title: "Add", style: .default, handler: { (action: UIAlertAction) -> Void in print("OK")
             
-            guard let name = self.newNameTF?.text!, let email = self.newEmailTF?.text!, let phoneNum = self.newPhoneNumTF?.text else {
+            guard var name = self.newNameTF?.text!, let email = self.newEmailTF?.text!, let phoneNum = self.newPhoneNumTF?.text else {
                 self.createSimpleAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
                 return
             }
@@ -225,6 +229,8 @@ class TimeClockViewController: UIViewController,UITableViewDelegate,UITableViewD
             if tempName != "" && tempPhoneNum != "Invalid phone number" {
                 let idRef = self.ref.child("employees").childByAutoId()
                 let id = idRef.key
+                
+                name = name.capitalizeFirstLetter()
                 
                 let employeeInfo = [
                     "name":          name,
@@ -341,6 +347,7 @@ class TimeClockViewController: UIViewController,UITableViewDelegate,UITableViewD
     }
     
     func initView() {
+        
         newEmployeeButton.layer.cornerRadius = 10
         newEmployeeButton.layer.masksToBounds = true
         newEmployeeButton.layer.borderColor = UIColor.black.cgColor
@@ -383,6 +390,8 @@ class TimeClockViewController: UIViewController,UITableViewDelegate,UITableViewD
     
     @IBAction func unwindToTimeClock(segue: UIStoryboardSegue) {
         getEmployees()
+
+
     }
     
     override func viewDidLoad() {

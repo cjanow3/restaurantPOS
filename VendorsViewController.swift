@@ -16,9 +16,12 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
     //
     
     var ref:DatabaseReference!
-    var refHandle: UInt!
+    var uid:String = ""
     
+    @IBOutlet weak var vendorsHeader: UILabel!
     
+    @IBOutlet weak var mainMenuButton: UIButton!
+    @IBOutlet weak var newVendorButton: UIButton!
     //
     // - initialize variables for pickup as initial view
     // - create lists that will display vendors
@@ -29,6 +32,8 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
     var pickupvendorslist = [newVendor]()
     var deliveryvendorslist = [newVendor]()
     
+    var newNameTF: UITextField?
+
 
     //
     // Functions used to display appropriate data in table view
@@ -54,12 +59,10 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
         case 0:
             isPickup = true
             getPickupVendors()
-            break
     
         case 1:
             isPickup = false
             getDeliveryVendors()
-            break
             
         default:
             break
@@ -144,13 +147,55 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
             switch pickupDeliverySeg.selectedSegmentIndex
             {
             case 0:
-                ref.child("vendors").child("pickup vendors").child(pickupvendorslist[indexPath.row].getName()).removeValue()
-                getPickupVendors()
-                break
+                //
+                // Delete note and refresh with confirmation alert
+                //
+                
+                let vendorname = self.pickupvendorslist[indexPath.row].getName()
+                
+                let alert = UIAlertController(title: "Confirm Deletion", message: "Really delete '" + vendorname + "'?", preferredStyle: .alert)
+                let vc = UIViewController()
+                vc.preferredContentSize = CGSize(width: 250,height: 30)
+                
+                alert.setValue(vc, forKey: "contentViewController")
+                
+                let ok = UIAlertAction(title: "Confirm", style: .default, handler: { (action: UIAlertAction) -> Void in
+                    self.ref.child("vendors").child("pickup vendors").child(self.pickupvendorslist[indexPath.row].getName()).removeValue()
+                    self.zeroOutVendorData()
+                    self.getPickupVendors()
+                })
+                
+                let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+                alert.addAction(cancel)
+                alert.addAction(ok)
+                
+                self.present(alert, animated: true, completion: nil)
+                
             case 1:
-                ref.child("vendors").child("delivery vendors").child(deliveryvendorslist[indexPath.row].getName()).removeValue()
-                getDeliveryVendors()
-                break
+                //
+                // Delete note and refresh with confirmation alert
+                //
+                
+                let vendorname = self.deliveryvendorslist[indexPath.row].getName()
+                
+                let alert = UIAlertController(title: "Confirm Deletion", message: "Really delete '" + vendorname + "'?", preferredStyle: .alert)
+                let vc = UIViewController()
+                vc.preferredContentSize = CGSize(width: 250,height: 30)
+                
+                alert.setValue(vc, forKey: "contentViewController")
+                
+                let ok = UIAlertAction(title: "Confirm", style: .default, handler: { (action: UIAlertAction) -> Void in
+                    self.ref.child("vendors").child("delivery vendors").child(self.deliveryvendorslist[indexPath.row].getName()).removeValue()
+                    self.zeroOutVendorData()
+                    self.getDeliveryVendors()
+                })
+                
+                let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+                alert.addAction(cancel)
+                alert.addAction(ok)
+                
+                self.present(alert, animated: true, completion: nil)
+
             default:
                 break
             }
@@ -160,28 +205,19 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
  
 
     //
-    // Save button to add new vendor to FirebaseDatabae -- has confirmation in verifyNewVendorInUIAlert
+    // New button to add new vendor to FirebaseDatabae -- has confirmation in verifyNewVendorInUIAlert
     //
     
     @IBAction func save(_ sender: Any) {
-        guard let name = vendorName.text else {
-            createSimpleAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
-            return
-        }
         
-        let aVendor = newVendor(NAME: name, CASH: 0.0, CREDIT: 0.0, TOTAL: 0.0, NUM: 0,PICKUP: isPickup, REFUND: 0.0)
+        var pickupdeliverystring = ""
         
         if (isPickup) {
-            verifyNewVendorInUIAlert(title: "Is this correct?", message: "Name: '\(name)'\n\nType: Pickup", theVendor: aVendor.self)
-
+            pickupdeliverystring = "Pickup"
         } else {
-            verifyNewVendorInUIAlert(title: "Is this correct?", message: "Name: '\(name)'\n\nType: Delivery", theVendor: aVendor.self)
-
+            pickupdeliverystring = "Delivery"
         }
-            
-        
-        
-
+        createAlertAddVendor(title: "New Vendor", message: "Pickup/Delivery: " + pickupdeliverystring)
     }
     
     //
@@ -196,7 +232,7 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
         let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
         
         //create ok action
-        let ok = UIAlertAction(title: "OK", style: .default, handler: { (action: UIAlertAction) -> Void in print("OK")
+        let ok = UIAlertAction(title: "OK", style: .default, handler: { (action: UIAlertAction) -> Void in
             
             //
             // Stores vendor in firebase database
@@ -216,7 +252,6 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
                 
                 
                 self.ref.child("vendors").child("pickup vendors").child(theVendor.getName()).setValue(vendorInfo)
-                print(theVendor.getName() + " stored")
         
             } else {
                 
@@ -232,7 +267,6 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
                 
                 
                 self.ref.child("vendors").child("delivery vendors").child(theVendor.getName()).setValue(vendorInfo)
-                print(theVendor.getName() + " stored")
             }
             
             self.vendorName.text = ""
@@ -244,7 +278,6 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
             
             DispatchQueue.main.async {
                 self.tableView.reloadData()
-                print("tableview refreshed in OK alert button")
 
             }
             
@@ -287,13 +320,13 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
             
             if let dictionary = snapshot.value as? [String : AnyObject] {
                 
-                let isaPickupOrder = dictionary["pickup"] as! Bool
+                let isAPickupVendor = dictionary["pickup"] as! Bool
                 
                 //
                 // Determine if vendor is a pickup vendor
                 //
                 
-                if (isaPickupOrder) {
+                if (isAPickupVendor) {
                     let vendor = newVendor()
                     
                     vendor.name = dictionary["name"] as? String
@@ -314,13 +347,9 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
                     
                     if (!beenAdded) {
                         self.pickupvendorslist.append(vendor)
-                        print("has")
-                    } else {
-                        print("not")
                     }
                     
                 }
-                
                 
                 //
                 // Refresh Tableview
@@ -329,14 +358,17 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
                 DispatchQueue.main.async {
                     self.tableView.reloadData()
                 }
-                
-                
-                
-                
             }
             
         })
         
+        //
+        // Refresh Tableview
+        //
+        
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
+        }
         
     } //end getPickupVendors
     
@@ -352,13 +384,13 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
         ref.child("vendors").child("delivery vendors").observe(.childAdded, with: { (snapshot) in
             if let dictionary = snapshot.value as? [String : AnyObject] {
                 
-                let isaDeliveryOrder = dictionary["pickup"] as! Bool
+                let isAPickupVendor = dictionary["pickup"] as! Bool
                 
                 //
                 // Determine if vendor is a delivery vendor
                 //
                 
-                if (!isaDeliveryOrder) {
+                if (!isAPickupVendor) {
                     let vendor = newVendor()
                     
                     vendor.name = dictionary["name"] as? String
@@ -372,10 +404,6 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
                     //
                     // Determines if item has already been added to the array
                     //
-                    // NOTE: I feel like this is a workaround but I can't find a better solution...
-                    //       Every time I click on opposite index in seg control, creates extra
-                    //       objects when adding new vendor
-                    //
                     
                     var beenAdded = false
                     for v in self.deliveryvendorslist {
@@ -387,6 +415,7 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
                     if (!beenAdded) {
                         self.deliveryvendorslist.append(vendor)
                     } else {
+                        
                     }
                 }
                 
@@ -403,6 +432,13 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
             
         })
         
+        //
+        // Refresh Tableview
+        //
+        
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
+        }
         
     } //end getDeliveryVendors
     
@@ -410,33 +446,208 @@ class VendorsViewController: UIViewController,UITableViewDataSource,UITableViewD
     // used to dismiss keyboards
     //
     
-    @objc func doneClicked()
-    {
+    @objc func doneClicked() {
         view.endEditing(true)
+    }
+    
+    func nameTFSetup(textfield: UITextField!) {
+        newNameTF = textfield
+        newNameTF?.placeholder = "Name"
+    }
+    
+    func createAlertAddVendor(title: String, message: String)
+    {
+        
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        
+        alert.addTextField(configurationHandler: nameTFSetup)
+
+        
+        let ok = UIAlertAction(title: "Add", style: .default, handler: { (action: UIAlertAction) -> Void in print("OK")
+            
+            guard var name = self.newNameTF?.text! else {
+                self.createSimpleAlert(title: "Check input", message: "At least one field was input incorrectly, check again")
+                return
+            }
+            
+            //
+            // Checks for arbitrary amount of spaces
+            //
+            
+            let tempName = name.trimmingCharacters(in: .whitespaces)
+            
+            if tempName != "" {
+                
+                name = name.capitalizeFirstLetter()
+                
+                let theVendor = newVendor(NAME: name, CASH: 0.0, CREDIT: 0.0, TOTAL: 0.0, NUM: 0,PICKUP: self.isPickup, REFUND: 0.0)
+                
+                if (theVendor.getPickup()) {
+                    
+                    let vendorInfo = [
+                        "name":  theVendor.getName(),
+                        "cash":     theVendor.getCash(),
+                        "credit":   theVendor.getCredit(),
+                        "total":    theVendor.getTotal(),
+                        "num":      theVendor.getNum(),
+                        "refund":   theVendor.getRefund(),
+                        "pickup":   theVendor.getPickup()
+                        ] as [String : Any]
+                    
+                    self.ref.child("vendors").child("pickup vendors").child(theVendor.getName()).setValue(vendorInfo)
+                    
+                    self.getPickupVendors()
+                    
+                    
+                } else {
+                    
+                    let vendorInfo = [
+                        "name":     theVendor.getName(),
+                        "cash":     theVendor.getCash(),
+                        "credit":   theVendor.getCredit(),
+                        "total":    theVendor.getTotal(),
+                        "num":      theVendor.getNum(),
+                        "refund":   theVendor.getRefund(),
+                        "pickup":   theVendor.getPickup()
+                        ] as [String : Any]
+                    
+                    
+                    self.ref.child("vendors").child("delivery vendors").child(theVendor.getName()).setValue(vendorInfo)
+                    
+                    self.getDeliveryVendors()
+                }
+                
+            }
+            
+            
+            
+        })
+        
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        alert.addAction(cancel)
+        
+        alert.addAction(ok)
+        
+        self.present(alert, animated: true, completion: nil)
+        
+        
+    }
+    
+    //
+    // Changes total in database to 0 to prevent doubled values
+    //
+    
+    func zeroOutVendorData() {
+
+        for v in self.pickupvendorslist {
+            
+            v.setCredit(CREDIT: 0.0)
+            v.setCash(CASH: 0.0)
+            v.setNum(NUM: 0)
+            v.setTotal(TOTAL: 0.0)
+            v.setRefund(REFUND: 0.0)
+            
+        }
+        
+        for v in self.deliveryvendorslist {
+            v.setCredit(CREDIT: 0.0)
+            v.setCash(CASH: 0.0)
+            v.setNum(NUM: 0)
+            v.setTotal(TOTAL: 0.0)
+            v.setRefund(REFUND: 0.0)
+        }
+        
+        //
+        // First part is zeroing out pickup vendors
+        //
+        
+        ref.child("vendors").child("pickup vendors").observe(.childAdded, with: { (snapshot) in
+            if let dictionary = snapshot.value as? [String : AnyObject] {
+                
+                let vendorName = dictionary["name"] as? String
+                
+                let vendorInfo = [
+                    "cash":    0.0,
+                    "credit":  0.0,
+                    "total":   0.0,
+                    "num":     0,
+                    "refund":  0.0
+                    ] as [String : Any]
+                
+                self.ref.child("vendors").child("pickup vendors").child(vendorName!).updateChildValues(vendorInfo)
+                
+            }
+        })
+        
+        ref.child("vendors").child("delivery vendors").observe(.childAdded, with: { (snapshot) in
+            if let dictionary = snapshot.value as? [String : AnyObject] {
+                
+                let vendorName = dictionary["name"] as? String
+                
+                let vendorInfo = [
+                    "cash":    0.0,
+                    "credit":  0.0,
+                    "total":   0.0,
+                    "num":     0,
+                    "refund":  0.0
+                    ] as [String : Any]
+                
+                self.ref.child("vendors").child("delivery vendors").child(vendorName!).updateChildValues(vendorInfo)
+                
+            }
+        })
+        
+        
+    } //end zeroOutVendors()
+    
+    func initView() {
+        newVendorButton.layer.cornerRadius = 10
+        newVendorButton.layer.masksToBounds = true
+        newVendorButton.layer.borderColor = UIColor.black.cgColor
+        newVendorButton.layer.borderWidth = 0.5
+        newVendorButton.layer.shadowColor = UIColor.black.cgColor
+        newVendorButton.layer.shadowOffset = CGSize.zero
+        newVendorButton.layer.shadowRadius = 5.0
+        newVendorButton.layer.shadowOpacity = 0.5
+        newVendorButton.clipsToBounds = false
+        
+        mainMenuButton.layer.cornerRadius = 10
+        mainMenuButton.layer.masksToBounds = true
+        mainMenuButton.layer.borderColor = UIColor.black.cgColor
+        mainMenuButton.layer.borderWidth = 0.5
+        mainMenuButton.layer.shadowColor = UIColor.black.cgColor
+        mainMenuButton.layer.shadowOffset = CGSize.zero
+        mainMenuButton.layer.shadowRadius = 5.0
+        mainMenuButton.layer.shadowOpacity = 0.5
+        mainMenuButton.clipsToBounds = false
+        
+        pickupDeliverySeg.layer.borderColor = UIColor.black.cgColor
+        pickupDeliverySeg.layer.borderWidth = 1.0
+        
+        let strokeTextAttributes: [NSAttributedStringKey : Any] = [
+            NSAttributedStringKey.strokeColor : UIColor.black,
+            NSAttributedStringKey.foregroundColor : UIColor.white,
+            NSAttributedStringKey.strokeWidth : -2.0,
+            ]
+        
+        vendorsHeader.attributedText = NSAttributedString(string: "Vendors", attributes: strokeTextAttributes)
+        
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
        
         //
-        // Initialize database reference and display table view for pickup vendors
+        // Initialize database reference and
+        // display pickup vendors in table view
         //
-        
-        ref = Database.database().reference()
+
+        ref = Database.database().reference().child("users").child(uid)
+
         getPickupVendors()
 
-        //
-        //creating done button to close keyboards
-        //
-        
-        let toolBar = UIToolbar()
-        toolBar.sizeToFit()
-        
-        let doneButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.done, target: self, action: #selector(self.doneClicked))
-        
-        toolBar.setItems([doneButton], animated: false)
-        
-        vendorName.inputAccessoryView = toolBar
+        initView()
 
         
     }
